@@ -30,13 +30,20 @@ const OPTIONS: { value: OutputType; label: string; description: string }[] = [
 export function OutputSelector({ value, onChange }: OutputSelectorProps) {
   return (
     <RadioGroup value={value} onValueChange={(v) => onChange(v as OutputType)}>
-      <div className="grid gap-3">
+      <div className="grid gap-2">
         {OPTIONS.map((option) => (
-          <div key={option.value} className="flex items-start space-x-3">
-            <RadioGroupItem value={option.value} id={option.value} className="mt-1" />
+          <div
+            key={option.value}
+            className={`flex items-start space-x-3 rounded-lg border p-3.5 transition-all cursor-pointer ${
+              value === option.value
+                ? 'border-primary bg-primary/5'
+                : 'border-border hover:bg-accent'
+            }`}
+          >
+            <RadioGroupItem value={option.value} id={option.value} className="mt-0.5" />
             <Label
               htmlFor={option.value}
-              className="flex-1 cursor-pointer space-y-1"
+              className="flex-1 cursor-pointer space-y-0.5"
             >
               <div className="font-medium">{option.label}</div>
               <div className="text-sm text-muted-foreground">

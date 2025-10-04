@@ -9,6 +9,9 @@ interface OfferInputProps {
 }
 
 export function OfferInput({ value, onChange }: OfferInputProps) {
+  const isValid = value.length >= 50;
+  const charCount = value.length;
+
   return (
     <div className="space-y-2">
       <Label htmlFor="job-offer">Offre d'emploi</Label>
@@ -17,11 +20,14 @@ export function OfferInput({ value, onChange }: OfferInputProps) {
         placeholder="Collez l'offre d'emploi ici (minimum 50 caractères)..."
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="min-h-[300px] resize-y"
+        className="min-h-[280px] resize-y"
       />
-      <p className="text-xs text-muted-foreground">
-        {value.length} / 50 caractères minimum
-      </p>
+      <div className="flex items-center justify-between text-xs">
+        <span className={isValid ? "text-primary" : "text-muted-foreground"}>
+          {isValid ? "✓ Prêt à générer" : "Minimum 50 caractères requis"}
+        </span>
+        <span className="text-muted-foreground">{charCount} caractères</span>
+      </div>
     </div>
   );
 }

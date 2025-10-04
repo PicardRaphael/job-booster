@@ -23,13 +23,17 @@ export default function Home() {
   const canSubmit = jobOffer.trim().length >= 50 && !isPending;
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-background to-muted/20 p-4 md:p-8">
-      <div className="mx-auto max-w-6xl space-y-8">
+    <main className="min-h-screen bg-background">
+      <div className="mx-auto max-w-4xl px-4 py-12 md:py-16">
         {/* Header */}
-        <div className="text-center space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight">JobBooster</h1>
+        <div className="text-center space-y-4 mb-12">
+          <h1 className="text-5xl md:text-6xl font-bold tracking-tight">
+            <span className="bg-gradient-to-r from-primary via-emerald-400 to-primary bg-clip-text text-transparent">
+              JobBooster
+            </span>
+          </h1>
           <p className="text-muted-foreground text-lg">
-            Boostez vos candidatures avec l'IA
+            Générez des candidatures personnalisées avec l'IA
           </p>
         </div>
 
@@ -38,22 +42,19 @@ export default function Home() {
           <CardHeader>
             <CardTitle>Nouvelle candidature</CardTitle>
             <CardDescription>
-              Collez l'offre d'emploi ci-dessous et choisissez le type de contenu à générer
+              Collez votre offre d'emploi et choisissez le type de contenu à générer
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <OfferInput value={jobOffer} onChange={setJobOffer} />
 
-            <div className="space-y-2">
+            <div className="space-y-3">
               <label className="text-sm font-medium">Type de contenu</label>
               <OutputSelector value={outputType} onChange={setOutputType} />
-              <p className="text-xs text-muted-foreground">
-                ⚠️ Un seul choix possible par génération
-              </p>
             </div>
 
             {error && (
-              <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+              <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-4 text-sm text-destructive">
                 {error instanceof Error ? error.message : "Une erreur est survenue"}
               </div>
             )}
@@ -66,7 +67,7 @@ export default function Home() {
             >
               {isPending ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="h-4 w-4 animate-spin" />
                   Génération en cours...
                 </>
               ) : (

@@ -3,7 +3,11 @@
     "allow": [
       "Bash(touch:*)",
       "Bash(rm:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(pnpm dlx:*)",
+      "Bash(pnpm run dev:*)",
+      "Bash(pnpm install:*)",
+      "Bash(pnpm update:*)"
     ],
     "deny": [],
     "ask": []
