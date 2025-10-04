@@ -1,10 +1,10 @@
 """
-Generate LinkedIn Post Use Case.
+Generate LinkedIn Message Use Case.
 
 Application Layer - Clean Architecture
 
-Use case atomique pour générer un post LinkedIn.
-Responsabilité unique: Génération de post LinkedIn uniquement.
+Use case atomique pour générer un message privé LinkedIn.
+Responsabilité unique: Génération de message LinkedIn uniquement.
 """
 
 from typing import List
@@ -21,11 +21,11 @@ logger = get_logger(__name__)
 
 class GenerateLinkedInUseCase:
     """
-    Use Case: Générer un post LinkedIn de motivation.
+    Use Case: Générer un message privé LinkedIn de motivation.
 
     Responsabilité (SRP):
-    - Générer uniquement des posts LinkedIn
-    - Une seule raison de changer: si le format LinkedIn change
+    - Générer uniquement des messages privés LinkedIn
+    - Une seule raison de changer: si le format message LinkedIn change
 
     Flow:
     1. Construire le contexte RAG depuis documents
@@ -35,30 +35,30 @@ class GenerateLinkedInUseCase:
 
     Pourquoi ce use case séparé?
     - Interface Segregation: Dépend de ILinkedInWriter uniquement
-    - Réutilisable: On peut générer un post LinkedIn indépendamment
+    - Réutilisable: On peut générer un message LinkedIn indépendamment
     - Testable: Mock ILinkedInWriter facilement
     """
 
     def __init__(self, linkedin_writer: ILinkedInWriter):
         """
-        Injecte le writer de posts LinkedIn.
+        Injecte le writer de messages LinkedIn.
 
         Args:
-            linkedin_writer: Writer pour générer posts LinkedIn (interface)
+            linkedin_writer: Writer pour générer messages privés LinkedIn (interface)
                             Ex: LinkedInWriterAdapter (avec CrewAI)
         """
         self.linkedin_writer = linkedin_writer
 
     def execute(self, command: GenerateContentCommand) -> str:
         """
-        Génère un post LinkedIn de motivation.
+        Génère un message privé LinkedIn de motivation.
 
         Args:
             command: Command contenant job_offer, analysis, documents
 
         Returns:
-            Post LinkedIn (str)
-            Format: Post direct avec émojis et hashtags
+            Message privé LinkedIn (str)
+            Format: Message direct, court (100-150 mots), sans emojis
 
         Raises:
             ContentGenerationError: Si la génération échoue
@@ -70,9 +70,9 @@ class GenerateLinkedInUseCase:
             ...     documents=[doc1, doc2, doc3],
             ...     content_type="linkedin"
             ... )
-            >>> post = use_case.execute(command)
-            >>> print(post)
-            "🚀 Développeur Python passionné recherche nouveau défi!..."
+            >>> message = use_case.execute(command)
+            >>> print(message)
+            "Bonjour [Prénom],\\n\\nJe me permets de vous contacter..."
         """
         logger.info("generate_linkedin_use_case_started")
 
@@ -89,7 +89,7 @@ class GenerateLinkedInUseCase:
         )
 
         # Étape 3: Appeler le writer
-        linkedin_content = self.linkedin_writer.write_linkedin_post(
+        linkedin_content = self.linkedin_writer.write_linkedin_message(
             job_offer=job_offer,
             analysis=analysis,
             context=context,

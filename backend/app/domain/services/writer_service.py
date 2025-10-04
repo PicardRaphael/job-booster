@@ -13,7 +13,7 @@ Pourquoi 3 interfaces séparées au lieu d'une seule?
 
 Architecture:
 - IEmailWriter: Génère des emails de motivation
-- ILinkedInWriter: Génère des posts LinkedIn
+- ILinkedInWriter: Génère des messages privés LinkedIn
 - ILetterWriter: Génère des lettres de motivation
 - IContentWriterService: Composite qui donne accès aux 3 writers
 """
@@ -63,23 +63,23 @@ class IEmailWriter(ABC):
 
 class ILinkedInWriter(ABC):
     """
-    Interface pour générer des posts LinkedIn.
+    Interface pour générer des messages privés LinkedIn.
 
     Responsabilité:
-    - Générer un post engageant pour LinkedIn
-    - Utiliser le contexte RAG pour montrer l'expérience
-    - S'adapter au ton LinkedIn (professionnel mais humain)
+    - Générer un message privé engageant pour LinkedIn
+    - Utiliser le contexte RAG pour personnaliser le message
+    - S'adapter au ton LinkedIn (professionnel mais authentique)
     """
 
     @abstractmethod
-    def write_linkedin_post(
+    def write_linkedin_message(
         self,
         job_offer: JobOffer,
         analysis: JobAnalysis,
         context: str,
     ) -> str:
         """
-        Génère un post LinkedIn de motivation.
+        Génère un message privé LinkedIn pour candidature.
 
         Args:
             job_offer: Offre d'emploi originale (texte brut)
@@ -88,12 +88,12 @@ class ILinkedInWriter(ABC):
             context: Contexte RAG (expériences/projets de l'utilisateur)
 
         Returns:
-            Post LinkedIn (str)
-            Format: Post direct avec hashtags
+            Message privé LinkedIn (str)
+            Format: Message direct, court (100-150 mots), sans emojis
 
         Example:
-            >>> writer.write_linkedin_post(job_offer, analysis, context)
-            "🚀 Développeur Python passionné recherche nouveau défi!\\n..."
+            >>> writer.write_linkedin_message(job_offer, analysis, context)
+            "Bonjour [Prénom],\\n\\nJe me permets de vous contacter..."
         """
         pass
 

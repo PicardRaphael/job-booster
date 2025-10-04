@@ -3,8 +3,8 @@ LinkedIn Writer Adapter (CrewAI).
 
 Infrastructure Layer - Clean Architecture
 
-Adapter pour générer des posts LinkedIn avec CrewAI.
-Implémente ILinkedInWriter du domain.
+Adapter pour gÃ©nÃ©rer des messages privÃ©s LinkedIn avec CrewAI.
+ImplÃ©mente ILinkedInWriter du domain.
 """
 
 from typing import Any, Dict
@@ -23,14 +23,14 @@ logger = get_logger(__name__)
 
 class LinkedInWriterAdapter(ILinkedInWriter):
     """
-    Adapter CrewAI pour générer des posts LinkedIn.
+    Adapter CrewAI pour gÃ©nÃ©rer des messages privÃ©s LinkedIn.
 
-    Responsabilité (SRP):
-    - Générer des posts LinkedIn avec CrewAI
+    ResponsabilitÃ© (SRP):
+    - GÃ©nÃ©rer des messages privÃ©s LinkedIn avec CrewAI
     - Une seule raison de changer: si la config CrewAI LinkedIn change
 
     Pattern Adapter:
-    - Adapte CrewAI à l'interface ILinkedInWriter
+    - Adapte CrewAI Ã  l'interface ILinkedInWriter
     - Utilise AgentBuilder et CrewBuilder (infrastructure)
     - Respecte Interface Segregation (juste LinkedIn)
     """
@@ -45,7 +45,7 @@ class LinkedInWriterAdapter(ILinkedInWriter):
         Initialise l'adapter avec config et LLM provider.
 
         Args:
-            llm_provider: Provider pour créer LLM
+            llm_provider: Provider pour crï¿½er LLM
             agent_config: Config de l'agent linkedin_writer (depuis YAML)
             task_config: Config de la task write_linkedin (depuis YAML)
         """
@@ -54,16 +54,16 @@ class LinkedInWriterAdapter(ILinkedInWriter):
         self.task_config = task_config
         logger.info("linkedin_writer_adapter_initialized")
 
-    def write_linkedin_post(
+    def write_linkedin_message(
         self,
         job_offer: JobOffer,
         analysis: JobAnalysis,
         context: str,
     ) -> str:
-        """Génère un post LinkedIn avec CrewAI."""
-        logger.info("writing_linkedin_post_with_crewai")
+        """GÃ©nÃ¨re un message privÃ© LinkedIn avec CrewAI."""
+        logger.info("writing_linkedin_message_with_crewai")
 
-        # Créer l'agent
+        # Crï¿½er l'agent
         llm = self.llm_provider.create_llm("linkedin_writer")
         agent = (
             AgentBuilder()
@@ -72,14 +72,14 @@ class LinkedInWriterAdapter(ILinkedInWriter):
             .build()
         )
 
-        # Créer la task
+        # CrÃ©er la task
         task = Task(
-            description=self.task_config.get("description", "Write LinkedIn post"),
-            expected_output=self.task_config.get("expected_output", "LinkedIn post"),
+            description=self.task_config.get("description", "Write LinkedIn message"),
+            expected_output=self.task_config.get("expected_output", "LinkedIn message"),
             agent=agent,
         )
 
-        # Créer et exécuter le crew
+        # Crï¿½er et exï¿½cuter le crew
         crew = (
             CrewBuilder()
             .add_agent(agent)
@@ -97,6 +97,6 @@ class LinkedInWriterAdapter(ILinkedInWriter):
         result = crew.kickoff(inputs=inputs)
         linkedin_content = str(result)
 
-        logger.info("linkedin_post_written", length=len(linkedin_content))
+        logger.info("linkedin_message_written", length=len(linkedin_content))
 
         return linkedin_content

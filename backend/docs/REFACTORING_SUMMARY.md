@@ -540,7 +540,7 @@ async def generate_content(request: GenerateRequest):
 class IWriterService(ABC):
     # ❌ Interface monolithique
     def write_email(...): pass
-    def write_linkedin_post(...): pass
+    def write_linkedin_message(...): pass
     def write_cover_letter(...): pass
 ```
 
@@ -551,7 +551,7 @@ class IEmailWriter(ABC):
     def write_email(...): pass
 
 class ILinkedInWriter(ABC):
-    def write_linkedin_post(...): pass
+    def write_linkedin_message(...): pass
 
 class ILetterWriter(ABC):
     def write_cover_letter(...): pass

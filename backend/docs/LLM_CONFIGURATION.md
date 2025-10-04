@@ -1,12 +1,28 @@
-# 🎛️ Configuration LLM Avancée
+# 🎛️ Configuration LLM Avancée - Clean Architecture
 
 ## 📋 Vue d'ensemble
 
-JobBooster permet de configurer finement les paramètres LLM pour chaque agent individuellement via :
+JobBooster utilise une architecture **Clean Architecture** avec multi-provider LLM.
+
+La configuration LLM se fait via :
 1. **Fichier YAML** : `app/agents/config/llm_config.yaml` (configuration de base)
 2. **Variables d'environnement** : Surcharge dynamique via `AGENT_<NAME>_<PARAM>` (optionnel)
 
 Chaque agent peut utiliser **n'importe quel provider** (OpenAI, Google, Anthropic) avec une configuration complètement personnalisée.
+
+## 🏗️ Architecture
+
+```
+LLMFactory (Core)
+    ↓
+LLMProviderAdapter (Infrastructure)
+    ↓
+CrewAI Adapters (Infrastructure)
+    ↓
+Use Cases (Application)
+```
+
+La **LLMFactory** crée des LLMs configurés qui sont injectés dans les **adapters** via le **Container** (Dependency Injection).
 
 ## 📁 Fichier de Configuration
 
@@ -170,40 +186,72 @@ Cas d'usage :
 └─ 1.3-2.0 : Brainstorming, idées originales
 ```
 
-## 🔧 Utilisation dans le Code
+## 🔧 Utilisation dans le Code (Clean Architecture)
 
-### Création automatique via LLMFactory
+### Via le Container (Dependency Injection)
 
 ```python
-from app.core.llm_factory import get_llm_factory
+from app.core.container import get_container
 
-# Obtenir la factory
-llm_factory = get_llm_factory()
+# Le container gère toutes les dépendances
+container = get_container()
 
-# Créer LLM pour un agent spécifique (détecte automatiquement le provider)
-analyzer_llm = llm_factory.create_llm_for_agent("analyzer")
-# → Lit llm_config.yaml et crée le bon LLM (OpenAI, Google ou Anthropic)
+# LLMFactory est injecté dans les adapters
+llm_provider = container.llm_provider()  # LLMProviderAdapter
 
-email_llm = llm_factory.create_llm_for_agent("email_writer")
-# → Peut être un provider différent !
+# Les adapters utilisent le LLMProvider
+email_writer_adapter = container.content_writer_service().get_email_writer()
+# → Créé avec LLM configuré automatiquement
 ```
 
-### Dans JobApplicationCrew
+### Dans les Adapters (Infrastructure)
 
 ```python
-@agent
-def analyzer(self) -> Agent:
-    return Agent(
-        config=self.agents_config["analyzer"],
-        llm=self.llm_factory.create_llm_for_agent("analyzer"),
-    )
+# app/infrastructure/ai/crewai/email_writer_adapter.py
+class EmailWriterAdapter(IEmailWriter):
+    def __init__(self, llm_provider: ILLMProvider, agent_config: Dict, task_config: Dict):
+        self.llm_provider = llm_provider
+        self.agent_config = agent_config
+        self.task_config = task_config
 
-@agent
-def linkedin_writer(self) -> Agent:
-    return Agent(
-        config=self.agents_config["linkedin_writer"],
-        llm=self.llm_factory.create_llm_for_agent("linkedin_writer"),
-    )
+    def write_email(self, job_offer, analysis, context):
+        # Créer LLM via provider (détecte automatiquement le provider YAML)
+        llm = self.llm_provider.create_llm("email_writer")
+
+        # Créer agent avec LLM configuré
+        agent = AgentBuilder().from_config(self.agent_config).with_llm(llm).build()
+
+        # Créer task
+        task = Task(description=self.task_config["description"], agent=agent)
+
+        # Créer crew
+        crew = CrewBuilder().add_agent(agent).add_task(task).build()
+
+        # Exécuter
+        result = crew.kickoff(inputs={...})
+        return str(result)
+```
+
+### LLMFactory (Core Layer)
+
+```python
+# app/core/llm_factory.py
+class LLMFactory:
+    def __init__(self, llm_config: Dict[str, Any]):
+        """Config injectée, pas chargée (Clean Architecture)."""
+        self.config = llm_config
+
+    def create_llm_for_agent(self, agent_name: str) -> BaseChatModel:
+        """Crée LLM pour agent (détecte provider automatiquement)."""
+        config = self._get_agent_config(agent_name)
+        provider = config.get("provider", "openai")
+
+        if provider == "openai":
+            return self._create_openai_llm(config)
+        elif provider == "google":
+            return self._create_google_llm(config)
+        elif provider == "anthropic":
+            return self._create_anthropic_llm(config)
 ```
 
 ## 🔄 Surcharge via Variables d'Environnement
@@ -298,31 +346,35 @@ AGENT_ANALYZER_MODEL=claude-3-5-sonnet-20241022
 
 ## 🧪 Tests de Configuration
 
-### Vérifier le chargement
+### Vérifier le chargement via Container
 
 ```bash
 # Lancer Python dans le container
 docker exec -it jobbooster-backend python
 
->>> from app.core.llm_factory import get_llm_factory
->>> factory = get_llm_factory()
->>> config = factory._get_agent_config("analyzer")
->>> print(config)
-{'provider': 'openai', 'model': 'gpt-4o-mini', 'temperature': 0.3, ...}
+>>> from app.core.container import get_container
+>>> container = get_container()
+>>> llm_provider = container.llm_provider()
+>>> llm = llm_provider.create_llm("analyzer")
+>>> print(llm.__class__.__name__)  # ChatOpenAI, ChatGoogleGenerativeAI ou ChatAnthropic
+>>> print(llm.temperature)  # 0.3
 ```
 
-### Tester un agent
+### Tester un Use Case
 
 ```python
-from app.agents.crews import JobApplicationCrew
+from app.core.container import get_container
 
-crew = JobApplicationCrew()
-analyzer = crew.analyzer()
+# Obtenir orchestrator (contient tous les use cases)
+container = get_container()
+orchestrator = container.generate_application_orchestrator()
 
-# Vérifier la config LLM
-print(analyzer.llm.__class__.__name__)  # ChatOpenAI, ChatGoogleGenerativeAI ou ChatAnthropic
-print(analyzer.llm.temperature)  # 0.3
-print(analyzer.llm.max_tokens)   # 1500
+# Vérifier les LLMs utilisés
+analyzer_service = container.analyzer_service()
+# → CrewAIAnalyzerAdapter avec LLM configuré
+
+email_writer = container.content_writer_service().get_email_writer()
+# → EmailWriterAdapter avec LLM configuré
 ```
 
 ### Tester les ENV overrides
@@ -332,9 +384,10 @@ print(analyzer.llm.max_tokens)   # 1500
 AGENT_ANALYZER_PROVIDER=anthropic \
 AGENT_ANALYZER_TEMPERATURE=0.1 \
 docker exec -it jobbooster-backend python -c "
-from app.core.llm_factory import get_llm_factory
-factory = get_llm_factory()
-llm = factory.create_llm_for_agent('analyzer')
+from app.core.container import get_container
+container = get_container()
+llm_provider = container.llm_provider()
+llm = llm_provider.create_llm('analyzer')
 print(f'Provider: {llm.__class__.__name__}')
 print(f'Temperature: {llm.temperature}')
 "
@@ -489,13 +542,28 @@ AGENT_EMAIL_WRITER_MODEL=claude-3-5-sonnet-20241022
 
 ## 📝 Résumé
 
-**Configuration flexible des LLM par agent :**
+**Configuration flexible des LLM par agent (Clean Architecture) :**
 - ✅ Fichier YAML pour config de base
 - ✅ Variables ENV pour surcharge dynamique
 - ✅ Support multi-providers (OpenAI, Google, Anthropic)
 - ✅ Hiérarchie claire : default < agent < ENV
+- ✅ Dependency Injection via Container
+- ✅ LLMFactory injecté dans adapters (pas chargement I/O)
 - ✅ Logs structurés pour debugging
 - ✅ Monitoring Langfuse intégré
+
+**Architecture :**
+```
+YAMLConfigurationLoader (Infrastructure)
+    ↓ Charge config
+LLMFactory (Core)
+    ↓ Crée LLMs
+LLMProviderAdapter (Infrastructure)
+    ↓ Injecté dans
+CrewAI Adapters (Infrastructure)
+    ↓ Utilisé par
+Use Cases (Application)
+```
 
 **Format ENV :**
 ```bash
@@ -510,6 +578,21 @@ agents:
     provider: openai
     model: gpt-4o-mini
     temperature: 0.3
+
+  email_writer:
+    provider: openai
+    model: gpt-4o-mini
+    temperature: 0.7
+
+  linkedin_writer:
+    provider: google
+    model: gemini-1.5-pro
+    temperature: 0.75
+
+  letter_writer:
+    provider: anthropic
+    model: claude-3-5-sonnet-20241022
+    temperature: 0.8
 ```
 
 ```bash
@@ -519,7 +602,18 @@ AGENT_ANALYZER_MODEL=claude-3-5-sonnet-20241022
 AGENT_ANALYZER_TEMPERATURE=0.2
 ```
 
+**Utilisation dans le code :**
+```python
+# Via Container (Dependency Injection)
+from app.core.container import get_container
+
+container = get_container()
+orchestrator = container.generate_application_orchestrator()
+# Tous les LLMs sont automatiquement configurés et injectés !
+```
+
 ---
 
 **Documentation par** : Team JobBooster
-**Dernière mise à jour** : 2025-10-03
+**Dernière mise à jour** : 2025-10-04
+**Architecture** : Clean Architecture + SOLID

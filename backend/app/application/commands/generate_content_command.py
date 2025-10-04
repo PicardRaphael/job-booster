@@ -18,7 +18,7 @@ class GenerateContentCommand:
     Command: Générer du contenu de candidature.
 
     Intention:
-    - Générer un email, post LinkedIn, ou lettre de motivation
+    - Générer un email, message privé LinkedIn, ou lettre de motivation
     - Utiliser l'analyse de l'offre + contexte RAG
     - Personnaliser avec les expériences de l'utilisateur
 

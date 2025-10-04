@@ -4,7 +4,7 @@ Content Writer Service (Composite).
 Infrastructure Layer - Clean Architecture
 
 Service composite qui regroupe tous les writers.
-Implémente IContentWriterService du domain.
+Implï¿½mente IContentWriterService du domain.
 """
 
 from app.core.logging import get_logger
@@ -22,19 +22,19 @@ class CrewAIContentWriterService(IContentWriterService):
     """
     Service composite pour tous les writers CrewAI.
 
-    Responsabilité (SRP):
-    - Fournir accès aux 3 writers (email, LinkedIn, lettre)
+    Responsabilitï¿½ (SRP):
+    - Fournir accï¿½s aux 3 writers (email, LinkedIn, lettre)
     - Une seule raison de changer: si on ajoute/supprime un type de writer
 
     Pattern Composite:
     - Regroupe les 3 writers en un seul service
     - Facilite la Dependency Injection (1 service au lieu de 3)
-    - Respecte Interface Segregation (chaque writer reste séparé)
+    - Respecte Interface Segregation (chaque writer reste sï¿½parï¿½)
 
     Pourquoi ce service?
     - Le Container injecte 1 seul service au lieu de 3
     - Partage des ressources entre writers (config, LLM provider)
-    - Centralise la logique de sélection du bon writer
+    - Centralise la logique de sï¿½lection du bon writer
 
     Example:
         >>> service = CrewAIContentWriterService(
@@ -62,7 +62,7 @@ class CrewAIContentWriterService(IContentWriterService):
             letter_writer: Writer pour lettres (ILetterWriter)
 
         Note:
-        Les writers sont injectés (déjà créés par le Container).
+        Les writers sont injectï¿½s (dï¿½jï¿½ crï¿½ï¿½s par le Container).
         Ce service est juste un wrapper/composite.
         """
         self._email_writer = email_writer
@@ -92,7 +92,7 @@ class CrewAIContentWriterService(IContentWriterService):
 
         Example:
             >>> writer = service.get_linkedin_writer()
-            >>> post = writer.write_linkedin_post(job_offer, analysis, context)
+            >>> message = writer.write_linkedin_message(job_offer, analysis, context)
         """
         return self._linkedin_writer
 

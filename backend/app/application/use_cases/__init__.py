@@ -15,7 +15,7 @@ Use Cases Atomiques:
 - SearchDocumentsUseCase: Chercher dans Qdrant
 - RerankDocumentsUseCase: Reranker les résultats
 - GenerateEmailUseCase: Générer un email
-- GenerateLinkedInUseCase: Générer un post LinkedIn
+- GenerateLinkedInUseCase: Générer un message privé LinkedIn
 - GenerateCoverLetterUseCase: Générer une lettre
 - TraceGenerationUseCase: Créer trace observability
 
