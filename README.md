@@ -5,16 +5,19 @@
 ## 🎯 Fonctionnalités
 
 - **Génération de contenus de candidature** :
+
   - Email de candidature (concis, 150-200 mots)
   - Message LinkedIn (engageant, 100-150 mots)
   - Lettre de motivation (structurée, 300-400 mots)
 
 - **RAG intelligent** :
+
   - Embeddings multilingues (`intfloat/multilingual-e5-base`)
   - Reranking avec `bclavie/bge-reranker-v2-m3`
   - Stockage vectoriel dans Qdrant
 
 - **Multi-LLM** :
+
   - OpenAI GPT-4o-mini
   - Google Gemini 1.5 Pro
 
@@ -26,6 +29,7 @@
 ## 🛠️ Stack Technique
 
 ### Backend
+
 - **FastAPI** : API REST haute performance
 - **CrewAI** : Orchestration d'agents IA
 - **Qdrant** : Base de données vectorielle
@@ -33,6 +37,7 @@
 - **HuggingFace** : Embeddings et reranking
 
 ### Frontend
+
 - **Next.js 15** : App Router + Server Components
 - **TypeScript** : Typage strict
 - **TailwindCSS** + **shadcn/ui** : UI moderne et accessible
@@ -236,4 +241,4 @@ Pour toute question, ouvrez une issue sur GitHub.
 
 ---
 
-Fait avec ❤️ par l'équipe JobBooster
+Fait avec ❤️ par Raphaël PICARD
