@@ -1,0 +1,93 @@
+# Configuration LLM par agent
+# Chaque agent peut utiliser n'importe quel provider (OpenAI, Google, Anthropic, etc.)
+# Format: provider + model + paramètres spécifiques
+#
+# Surcharge via ENV : AGENT_<AGENT_NAME>_<PARAM>=value
+# Exemples:
+#   AGENT_ANALYZER_PROVIDER=anthropic
+#   AGENT_ANALYZER_MODEL=claude-3-5-sonnet-20241022
+#   AGENT_ANALYZER_TEMPERATURE=0.2
+#   AGENT_EMAIL_WRITER_MAX_TOKENS=800
+
+agents:
+  # Analyzer - Extraction et analyse d'offres
+  analyzer:
+    provider: openai
+    model: gpt-4o-mini
+    temperature: 0.3  # Déterministe pour extraction
+    max_tokens: 1500
+    top_p: 0.9
+    frequency_penalty: 0.0
+    presence_penalty: 0.0
+
+  # Email Writer - Rédaction d'emails de candidature
+  email_writer:
+    provider: openai
+    model: gpt-4o-mini
+    temperature: 0.7  # Équilibré créativité/cohérence
+    max_tokens: 1000  # Email court
+    top_p: 0.95
+    frequency_penalty: 0.3  # Évite répétitions
+    presence_penalty: 0.2
+
+  # LinkedIn Writer - Messages LinkedIn personnalisés
+  linkedin_writer:
+    provider: google
+    model: gemini-1.5-pro
+    temperature: 0.75  # Légèrement créatif
+    max_output_tokens: 800  # Message court
+    top_p: 0.95
+    top_k: 40
+
+  # Letter Writer - Lettres de motivation complètes
+  letter_writer:
+    provider: openai
+    model: gpt-4o-mini
+    temperature: 0.8  # Plus créatif
+    max_tokens: 2500  # Lettre plus longue
+    top_p: 0.95
+    frequency_penalty: 0.2
+    presence_penalty: 0.3
+
+# Configuration par défaut si agent non spécifié
+default:
+  provider: openai
+  model: gpt-4o-mini
+  temperature: 0.7
+  max_tokens: 2000
+  top_p: 1.0
+  frequency_penalty: 0.0
+  presence_penalty: 0.0
+
+# Notes sur les paramètres :
+#
+# temperature: 0.0-2.0
+#   - 0.0-0.3: Déterministe, factuel (extraction, analyse)
+#   - 0.4-0.7: Équilibré (usage général)
+#   - 0.8-1.2: Créatif (génération contenu)
+#   - 1.3-2.0: Très créatif (brainstorming)
+#
+# max_tokens / max_output_tokens:
+#   - Nombre maximum de tokens générés
+#   - Email: 800-1200
+#   - LinkedIn: 600-1000
+#   - Lettre: 2000-3000
+#
+# top_p: 0.0-1.0
+#   - Nucleus sampling
+#   - 0.9-0.95: Recommandé pour cohérence
+#   - 1.0: Pas de filtrage
+#
+# top_k: 1-100 (Gemini uniquement)
+#   - Nombre de tokens considérés
+#   - 40: Valeur standard
+#
+# frequency_penalty: -2.0 to 2.0 (OpenAI uniquement)
+#   - Pénalise les répétitions de tokens
+#   - 0.0: Pas de pénalité
+#   - 0.5-1.0: Réduit répétitions
+#
+# presence_penalty: -2.0 to 2.0 (OpenAI uniquement)
+#   - Encourage nouveaux sujets
+#   - 0.0: Pas de pénalité
+#   - 0.5-1.0: Encourage diversité

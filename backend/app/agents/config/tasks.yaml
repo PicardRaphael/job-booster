@@ -1,0 +1,96 @@
+analyze_offer:
+  description: >
+    Analysez l'offre d'emploi suivante et extrayez les informations clés :
+
+    1. Le poste et l'entreprise
+    2. Les compétences techniques requises
+    3. Les compétences comportementales attendues
+    4. Les responsabilités principales
+    5. Les mots-clés importants pour le RAG
+
+    Offre d'emploi :
+    {job_offer}
+  expected_output: >
+    Une analyse structurée de l'offre avec toutes les informations clés
+    extraites et organisées de manière claire. Format JSON avec les clés :
+    poste, entreprise, competences_techniques, competences_comportementales,
+    responsabilites, mots_cles.
+  agent: analyzer
+
+write_email:
+  description: >
+    Rédigez un email de candidature professionnel en français.
+
+    Analyse de l'offre :
+    {analysis}
+
+    Contexte du candidat (RAG) :
+    {rag_context}
+
+    Instructions strictes :
+    - Email concis (150-200 mots maximum)
+    - Objet accrocheur
+    - Personnalisé selon l'offre
+    - Mettez en avant les compétences pertinentes
+    - Ton professionnel mais chaleureux
+    - PAS D'EMOJIS
+    - Utilisez le vouvoiement
+  expected_output: >
+    Un email de candidature complet avec objet et corps du message,
+    prêt à être envoyé. Format :
+
+    Objet: [objet]
+
+    [corps de l'email]
+  agent: email_writer
+  context:
+    - analyze_offer
+
+write_linkedin:
+  description: >
+    Rédigez un message LinkedIn engageant en français.
+
+    Analyse de l'offre :
+    {analysis}
+
+    Contexte du candidat (RAG) :
+    {rag_context}
+
+    Instructions strictes :
+    - Message court (100-150 mots)
+    - Ton conversationnel mais professionnel
+    - Créez une connexion personnelle
+    - Mentionnez 2-3 compétences clés
+    - Call-to-action clair
+    - PAS D'EMOJIS
+  expected_output: >
+    Un message LinkedIn prêt à être envoyé, engageant et personnalisé,
+    adapté au ton du réseau social professionnel.
+  agent: linkedin_writer
+  context:
+    - analyze_offer
+
+write_letter:
+  description: >
+    Rédigez une lettre de motivation complète en français.
+
+    Analyse de l'offre :
+    {analysis}
+
+    Contexte du candidat (RAG) :
+    {rag_context}
+
+    Instructions strictes :
+    - Structure classique (introduction, corps, conclusion)
+    - 300-400 mots
+    - Alignez expériences et compétences avec l'offre
+    - Montrez motivation et compréhension de l'entreprise
+    - Ton professionnel et enthousiaste
+    - PAS D'EMOJIS
+    - Utilisez le vouvoiement
+  expected_output: >
+    Une lettre de motivation complète et structurée, prête à être utilisée,
+    avec en-tête (coordonnées) et signature. Format professionnel classique.
+  agent: letter_writer
+  context:
+    - analyze_offer
