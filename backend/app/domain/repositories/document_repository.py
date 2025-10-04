@@ -13,14 +13,14 @@ class IDocumentRepository(ABC):
     """
 
     @abstractmethod
-    def search(
+    async def search(
         self,
         query: str,
         limit: int = 10,
         score_threshold: float = 0.5,
     ) -> List[Dict[str, Any]]:
         """
-        Search for similar documents.
+        Search for similar documents (async).
 
         Args:
             query: Search query
@@ -29,20 +29,26 @@ class IDocumentRepository(ABC):
 
         Returns:
             List of matching documents with metadata
+
+        Note:
+            Async car utilise embeddings via HuggingFace API HTTP
         """
         pass
 
     @abstractmethod
-    def upsert(
+    async def upsert(
         self,
         documents: List[str],
         metadatas: List[Dict[str, Any]],
     ) -> None:
         """
-        Upsert documents into repository.
+        Upsert documents into repository (async).
 
         Args:
             documents: List of document texts
             metadatas: List of document metadata
+
+        Note:
+            Async car utilise embeddings via HuggingFace API HTTP
         """
         pass

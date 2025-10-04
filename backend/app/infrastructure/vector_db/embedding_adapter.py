@@ -3,68 +3,69 @@ Multilingual Embedding Adapter.
 
 Infrastructure Layer - Clean Architecture
 
-Adapter pour le service d'embeddings multilingue.
-ImplÈmente IEmbeddingService du domain.
+Adapter pour le service d'embeddings multilingue via HuggingFace API HTTP.
+ImplÔøΩmente IEmbeddingService du domain.
 """
 
 from typing import List
 
 from app.core.logging import get_logger
 from app.domain.repositories.embedding_service import IEmbeddingService
-from app.services.embeddings import get_embedding_service
+from app.services.huggingface_embeddings import get_hf_embedding_service
 
 logger = get_logger(__name__)
 
 
 class MultilingualEmbeddingAdapter(IEmbeddingService):
     """
-    Adapter pour embeddings multilingues.
+    Adapter pour embeddings multilingues via HuggingFace API HTTP.
 
-    ResponsabilitÈ (SRP):
-    - Wrapper le service d'embeddings legacy
-    - ImplÈmenter l'interface IEmbeddingService
-    - Une seule raison de changer: si le modËle d'embedding change
+    ResponsabilitÔøΩ (SRP):
+    - Wrapper le service d'embeddings HuggingFace HTTP API
+    - ImplÔøΩmenter l'interface IEmbeddingService
+    - Une seule raison de changer: si le modÔøΩle d'embedding change
 
     Pattern Adapter (Hexagonal Architecture):
-    - Adapte le service embeddings existant ‡ l'interface domain
-    - Permet de changer de modËle facilement (OpenAI, Cohere, etc.)
-    - Isole le domain des dÈtails d'implÈmentation
+    - Adapte le service embeddings HuggingFace ÔøΩ l'interface domain
+    - Permet de changer de modÔøΩle facilement via API HTTP
+    - Isole le domain des dÔøΩtails d'implÔøΩmentation
 
-    ModËle utilisÈ:
-    - intfloat/multilingual-e5-large
-    - Dimension: 1024
-    - Supporte: FranÁais, Anglais, et 100+ langues
+    ModÔøΩles supportÔøΩs:
+    - intfloat/multilingual-e5-base (768 dim)
+    - intfloat/multilingual-e5-large (1024 dim)
+    - BAAI/bge-large-en-v1.5 (1024 dim)
+    - Supporte: FranÔøΩais, Anglais, et 100+ langues
 
     Example:
         >>> adapter = MultilingualEmbeddingAdapter()
-        >>> vectors = adapter.embed_texts(["Python developer", "FastAPI expert"])
+        >>> vectors = await adapter.embed_texts(["Python developer", "FastAPI expert"])
         >>> print(len(vectors))
         2
         >>> print(len(vectors[0]))
-        1024  # Dimension du modËle
+        768  # Dimension du modÔøΩle (e5-base)
     """
 
     def __init__(self):
         """
-        Initialise l'adapter avec le service d'embeddings.
+        Initialise l'adapter avec le service d'embeddings HuggingFace.
 
         Note:
-        On utilise get_embedding_service() qui est un singleton.
-        Le modËle est chargÈ une seule fois en mÈmoire.
+        On utilise get_hf_embedding_service() qui est un singleton.
+        Utilise l'API HTTP de HuggingFace Inference.
         """
-        self.embedding_service = get_embedding_service()
+        self.embedding_service = get_hf_embedding_service()
         logger.info("multilingual_embedding_adapter_initialized")
 
-    def embed_texts(self, texts: List[str]) -> List[List[float]]:
+    async def embed_texts(self, texts: List[str]) -> List[List[float]]:
         """
         Convertit une liste de textes en vecteurs.
 
-        UtilisÈ pour:
-        - IngÈrer documents dans Qdrant (batch)
+        UtilisÔøΩ pour:
+        - IngÔøΩrer documents dans Qdrant (batch)
         - Vectoriser plusieurs phrases en une fois
 
         Args:
-            texts: Liste de textes ‡ vectoriser
+            texts: Liste de textes ÔøΩ vectoriser
                    Ex: ["Je suis dev Python", "J'aime FastAPI"]
 
         Returns:
@@ -74,10 +75,10 @@ class MultilingualEmbeddingAdapter(IEmbeddingService):
 
         Example:
             >>> texts = [
-            ...     "DÈveloppeur Python avec 5 ans d'expÈrience",
+            ...     "DÔøΩveloppeur Python avec 5 ans d'expÔøΩrience",
             ...     "Expert FastAPI et microservices"
             ... ]
-            >>> vectors = adapter.embed_texts(texts)
+            >>> vectors = await adapter.embed_texts(texts)
             >>> print(len(vectors))
             2
             >>> print(len(vectors[0]))
@@ -85,8 +86,8 @@ class MultilingualEmbeddingAdapter(IEmbeddingService):
         """
         logger.info("embedding_texts", count=len(texts))
 
-        # Appeler le service legacy
-        vectors = self.embedding_service.embed_texts(texts)
+        # Appeler le service HuggingFace HTTP API
+        vectors = await self.embedding_service.embed_texts(texts)
 
         logger.info(
             "texts_embedded",
@@ -96,22 +97,22 @@ class MultilingualEmbeddingAdapter(IEmbeddingService):
 
         return vectors
 
-    def embed_query(self, query: str) -> List[float]:
+    async def embed_query(self, query: str) -> List[float]:
         """
-        Convertit une requÍte en vecteur.
+        Convertit une requÔøΩte en vecteur.
 
-        UtilisÈ pour:
+        UtilisÔøΩ pour:
         - Chercher dans Qdrant avec une query
-        - OptimisÈ pour les requÍtes (vs documents)
+        - OptimisÔøΩ pour les requÔøΩtes (vs documents)
 
         Note:
-        Certains modËles ont des embeddings diffÈrents pour
-        queries vs documents (asymmetric search). Le modËle
+        Certains modÔøΩles ont des embeddings diffÔøΩrents pour
+        queries vs documents (asymmetric search). Le modÔøΩle
         multilingual-e5-large supporte cela.
 
         Args:
-            query: Texte de la requÍte
-                   Ex: "DÈveloppeur Python FastAPI"
+            query: Texte de la requÔøΩte
+                   Ex: "DÔøΩveloppeur Python FastAPI"
 
         Returns:
             Un vecteur (liste de floats)
@@ -119,8 +120,8 @@ class MultilingualEmbeddingAdapter(IEmbeddingService):
             Dimension: 1024
 
         Example:
-            >>> query = "DÈveloppeur Python avec FastAPI"
-            >>> vector = adapter.embed_query(query)
+            >>> query = "DÔøΩveloppeur Python avec FastAPI"
+            >>> vector = await adapter.embed_query(query)
             >>> print(len(vector))
             1024
             >>> # Utiliser pour recherche Qdrant
@@ -132,8 +133,8 @@ class MultilingualEmbeddingAdapter(IEmbeddingService):
         """
         logger.info("embedding_query", query_preview=query[:50])
 
-        # Appeler le service legacy
-        vector = self.embedding_service.embed_query(query)
+        # Appeler le service HuggingFace HTTP API
+        vector = await self.embedding_service.embed_text(query)
 
         logger.info("query_embedded", dimension=len(vector))
 
@@ -143,8 +144,8 @@ class MultilingualEmbeddingAdapter(IEmbeddingService):
         """
         Retourne la dimension des vecteurs.
 
-        UtilisÈ pour:
-        - CrÈer la collection Qdrant avec la bonne dimension
+        UtilisÔøΩ pour:
+        - CrÔøΩer la collection Qdrant avec la bonne dimension
         - Valider que les vecteurs ont la bonne taille
 
         Returns:
@@ -156,11 +157,11 @@ class MultilingualEmbeddingAdapter(IEmbeddingService):
             >>> dim = adapter.get_dimension()
             >>> print(dim)
             1024
-            >>> # Utiliser pour crÈer collection Qdrant
+            >>> # Utiliser pour crÔøΩer collection Qdrant
             >>> qdrant_client.create_collection(
             ...     collection_name="docs",
             ...     vectors_config=VectorParams(
-            ...         size=dim,  # ê Dimension du modËle
+            ...         size=dim,  # ÔøΩ Dimension du modÔøΩle
             ...         distance=Distance.COSINE
             ...     )
             ... )

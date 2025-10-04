@@ -52,9 +52,9 @@ class RerankDocumentsUseCase:
         """
         self.reranker_service = reranker_service
 
-    def execute(self, command: RerankDocumentsCommand) -> List[DocumentDTO]:
+    async def execute(self, command: RerankDocumentsCommand) -> List[DocumentDTO]:
         """
-        Exécute le reranking des documents.
+        Exécute le reranking des documents (async).
 
         Args:
             command: Command contenant query, documents, top_k
@@ -66,13 +66,13 @@ class RerankDocumentsUseCase:
 
         Example:
             >>> # 10 documents de Qdrant
-            >>> docs = search_use_case.execute(...)
+            >>> docs = await search_use_case.execute(...)
             >>> command = RerankDocumentsCommand(
             ...     query="Python FastAPI",
             ...     documents=docs,
             ...     top_k=5
             ... )
-            >>> reranked = use_case.execute(command)
+            >>> reranked = await use_case.execute(command)
             >>> print(len(reranked))  # 5 documents (les meilleurs)
             >>> print(reranked[0].rerank_score)  # Plus haut score
         """
@@ -99,9 +99,9 @@ class RerankDocumentsUseCase:
             for doc in command.documents
         ]
 
-        # Étape 2: Appeler le service de reranking
-        # Le service utilise un modèle de reranking (ex: jina-reranker-v2)
-        reranked_dicts = self.reranker_service.rerank(
+        # Étape 2: Appeler le service de reranking (async)
+        # Le service utilise HuggingFace API HTTP
+        reranked_dicts = await self.reranker_service.rerank(
             query=command.query,
             documents=docs_dicts,
             top_k=command.top_k,

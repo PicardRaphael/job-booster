@@ -10,9 +10,9 @@ Pourquoi une interface?
 - Respecte le Dependency Inversion Principle (DIP)
 
 Exemple d'implémentations possibles:
-- MultilingualEmbeddingAdapter (actuel avec intfloat/multilingual-e5-large)
+- MultilingualEmbeddingAdapter (actuel avec HuggingFace API HTTP)
 - OpenAIEmbeddingAdapter (avec text-embedding-3-small)
-- LocalEmbeddingAdapter (avec sentence-transformers)
+- LocalEmbeddingAdapter (avec sentence-transformers en local)
 """
 
 from abc import ABC, abstractmethod
@@ -32,9 +32,9 @@ class IEmbeddingService(ABC):
     """
 
     @abstractmethod
-    def embed_texts(self, texts: List[str]) -> List[List[float]]:
+    async def embed_texts(self, texts: List[str]) -> List[List[float]]:
         """
-        Convertit une liste de textes en vecteurs.
+        Convertit une liste de textes en vecteurs (async).
 
         Utilisé pour:
         - Ingérer des documents dans Qdrant (batch)
@@ -51,13 +51,16 @@ class IEmbeddingService(ABC):
 
         Raises:
             EmbeddingError: Si l'embedding échoue
+
+        Note:
+            Méthode async car utilise l'API HTTP HuggingFace
         """
         pass
 
     @abstractmethod
-    def embed_query(self, query: str) -> List[float]:
+    async def embed_query(self, query: str) -> List[float]:
         """
-        Convertit une seule requête en vecteur.
+        Convertit une seule requête en vecteur (async).
 
         Utilisé pour:
         - Chercher dans Qdrant avec une query
@@ -76,6 +79,9 @@ class IEmbeddingService(ABC):
 
         Raises:
             EmbeddingError: Si l'embedding échoue
+
+        Note:
+            Méthode async car utilise l'API HTTP HuggingFace
         """
         pass
 

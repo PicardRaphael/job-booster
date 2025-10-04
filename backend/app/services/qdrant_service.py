@@ -26,11 +26,16 @@ class QdrantService:
         self.embedding_service = get_embedding_service()
         logger.info("qdrant_connected", collection=self.collection_name)
 
-    def ensure_collection(self) -> None:
+    def ensure_collection(self, recreate: bool = False) -> None:
         """Ensure the collection exists, create if not."""
+        vector_size = self.embedding_service.get_dimension()
+
+        if recreate and self.client.collection_exists(self.collection_name):
+            logger.warning("deleting_existing_collection", collection=self.collection_name)
+            self.client.delete_collection(self.collection_name)
+
         if not self.client.collection_exists(self.collection_name):
-            logger.info("creating_collection", collection=self.collection_name)
-            vector_size = self.embedding_service.get_dimension()
+            logger.info("creating_collection", collection=self.collection_name, dimension=vector_size)
             self.client.create_collection(
                 collection_name=self.collection_name,
                 vectors_config=VectorParams(
@@ -54,11 +59,12 @@ class QdrantService:
         embeddings = self.embedding_service.embed_texts(documents)
 
         if ids is None:
-            ids = [f"doc_{i}" for i in range(len(documents))]
+            # Use integers as IDs (Qdrant requirement)
+            ids = list(range(len(documents)))
 
         points = [
             PointStruct(
-                id=id_,
+                id=int(id_) if isinstance(id_, str) else id_,  # Ensure integer ID
                 vector=embedding,
                 payload={
                     "text": doc,

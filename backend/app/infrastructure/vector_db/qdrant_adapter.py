@@ -27,26 +27,26 @@ class QdrantAdapter(IDocumentRepository):
         self.qdrant_service = qdrant_service
         logger.info("qdrant_adapter_initialized")
 
-    def search(
+    async def search(
         self,
         query: str,
         limit: int = 10,
         score_threshold: float = 0.5,
     ) -> List[Dict[str, Any]]:
-        """Search for similar documents."""
-        return self.qdrant_service.search(
+        """Search for similar documents (async)."""
+        return await self.qdrant_service.search(
             query=query,
             limit=limit,
             score_threshold=score_threshold,
         )
 
-    def upsert(
+    async def upsert(
         self,
         documents: List[str],
         metadatas: List[Dict[str, Any]],
     ) -> None:
-        """Upsert documents into repository."""
-        self.qdrant_service.upsert_documents(
+        """Upsert documents into repository (async)."""
+        await self.qdrant_service.upsert_documents(
             documents=documents,
             metadatas=metadatas,
         )

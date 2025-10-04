@@ -46,9 +46,9 @@ class SearchDocumentsUseCase:
         """
         self.document_repository = document_repository
 
-    def execute(self, command: SearchDocumentsCommand) -> List[DocumentDTO]:
+    async def execute(self, command: SearchDocumentsCommand) -> List[DocumentDTO]:
         """
-        Exécute la recherche de documents.
+        Exécute la recherche de documents (async).
 
         Args:
             command: Command contenant query, limit, score_threshold
@@ -63,7 +63,7 @@ class SearchDocumentsUseCase:
             ...     limit=10,
             ...     score_threshold=0.5
             ... )
-            >>> documents = use_case.execute(command)
+            >>> documents = await use_case.execute(command)
             >>> print(len(documents))  # 0 à 10 documents
             >>> print(documents[0].score)  # >= 0.5
         """
@@ -74,9 +74,9 @@ class SearchDocumentsUseCase:
             threshold=command.score_threshold,
         )
 
-        # Étape 1: Appeler le repository
+        # Étape 1: Appeler le repository (async)
         # Le repository convertit query → embedding → recherche Qdrant
-        results = self.document_repository.search(
+        results = await self.document_repository.search(
             query=command.query,
             limit=command.limit,
             score_threshold=command.score_threshold,

@@ -31,6 +31,9 @@ class Settings(BaseSettings):
     # Anthropic Claude
     anthropic_api_key: str | None = Field(default=None, alias="ANTHROPIC_API_KEY")
 
+    # Hugging Face
+    huggingface_api_key: str = Field(..., alias="HUGGINGFACE_API_KEY")
+
     # Qdrant
     qdrant_url: str = Field(default="http://localhost:6333", alias="QDRANT_URL")
     qdrant_api_key: str | None = Field(default=None, alias="QDRANT_API_KEY")

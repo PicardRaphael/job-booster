@@ -89,8 +89,8 @@ class IngestionPipeline:
         # Validate directory
         self.validate_data_directory()
 
-        # Ensure Qdrant collection exists
-        self.qdrant.ensure_collection()
+        # Ensure Qdrant collection exists (recreate to fix dimension mismatch)
+        self.qdrant.ensure_collection(recreate=True)
 
         # Collect all documents
         documents, metadatas = self.collect_all_documents()
