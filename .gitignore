@@ -16,7 +16,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+
 lib64/
 parts/
 sdist/
@@ -55,14 +55,11 @@ build/
 # Docker
 *.log
 
-# Data
-backend/data/*.pdf
-backend/data/*.md
 
 # Models cache
 *.cache/
 .cache/
-models/
+
 
 # Langfuse
 langfuse.db
