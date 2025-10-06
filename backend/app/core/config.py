@@ -46,7 +46,7 @@ class Settings(BaseSettings):
         alias="EMBEDDING_MODEL",
     )
     reranker_model: str = Field(
-        default="bclavie/bge-reranker-v2-m3",
+        default="BAAI/bge-reranker-base",
         alias="RERANKER_MODEL",
     )
 

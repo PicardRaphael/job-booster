@@ -23,13 +23,15 @@ from app.domain.services.writer_service import IContentWriterService
 
 # Infrastructure
 from app.infrastructure.ai import LLMProviderAdapter, RerankerAdapter
-from app.infrastructure.ai.crewai import CrewAIContentWriterService
-from app.infrastructure.ai.crewai.email_writer_adapter import EmailWriterAdapter
-from app.infrastructure.ai.crewai.letter_writer_adapter import LetterWriterAdapter
-from app.infrastructure.ai.crewai.linkedin_writer_adapter import LinkedInWriterAdapter
+from app.infrastructure.ai.crewai import (
+    CrewAIContentWriterService,
+    EmailWriterAdapter,
+    LetterWriterAdapter,
+    LinkedInWriterAdapter,
+)
 from app.infrastructure.ai.crewai_analyzer_adapter import CrewAIAnalyzerAdapter
 from app.infrastructure.config import YAMLConfigurationLoader
-from app.infrastructure.observability import LangfuseAdapter
+from app.infrastructure.observability import LangfuseAdapter, NoOpObservabilityAdapter
 from app.infrastructure.vector_db import MultilingualEmbeddingAdapter, QdrantAdapter
 
 # Legacy services
@@ -145,7 +147,8 @@ class Container:
     def observability_service(self) -> IObservabilityService:
         """Get observability service."""
         if self._observability_service is None:
-            self._observability_service = LangfuseAdapter()
+            # Use NoOp adapter temporarily until Langfuse is properly configured
+            self._observability_service = NoOpObservabilityAdapter()
         return self._observability_service
 
     # === Domain Services ===
@@ -165,8 +168,7 @@ class Container:
     def reranker_service(self) -> IRerankerService:
         """Get reranker service."""
         if self._reranker_service is None:
-            reranker = get_reranker_service()
-            self._reranker_service = RerankerAdapter(reranker)
+            self._reranker_service = RerankerAdapter()
         return self._reranker_service
 
     def content_writer_service(self) -> IContentWriterService:

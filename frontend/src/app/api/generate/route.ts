@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
 
     // Proxy request to FastAPI backend
     const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-    const response = await fetch(`${backendUrl}/api/generate`, {
+    const response = await fetch(`${backendUrl}/api/v1/generate`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

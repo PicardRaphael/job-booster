@@ -24,7 +24,7 @@ Outil d’aide à la candidature **flexible**.
 - **NLP** : HuggingFace (PyTorch).
 
   - **Embeddings** : `intfloat/multilingual-e5-base`.
-  - **Reranker** : `bclavie/bge-reranker-v2-m3`.
+  - **Reranker** : `bclavie/bge-reranker-base`.
   - **Chunking** : dépend du format :
 
     - **Markdown (.md)** : découpage par sections/titres (`#`, `##`) avec `RecursiveCharacterTextSplitter`.
@@ -61,7 +61,7 @@ Outil d’aide à la candidature **flexible**.
    - Si texte brut (textarea) → découpage 400–600 tokens avec overlap 50.
    - Si PDF (CV/LinkedIn, backend only) → découpage 300–500 tokens, overlap 50–80.
 
-4. **RAG Pipeline** : embeddings (`e5-base`) → Qdrant → reranking (`bge-reranker-v2-m3`).
+4. **RAG Pipeline** : embeddings (`e5-base`) → Qdrant → reranking (`bge-reranker-base`).
 5. **CrewAI orchestration** :
 
    - `AnalyzerAgent` (OpenAI recommandé).

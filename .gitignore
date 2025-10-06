@@ -67,4 +67,4 @@ models/
 # Langfuse
 langfuse.db
 
-.claude/*
+.claude/

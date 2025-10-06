@@ -63,7 +63,7 @@ async def generate_content(request: GenerateRequest) -> GenerateResponse:
         command = GenerationMapper.request_to_command(request)
 
         # Étape 3: Execute orchestrator (business logic)
-        result = orchestrator.execute(command)
+        result = await orchestrator.execute(command)
 
         # Étape 4: Map Application result → HTTP response
         response = GenerationMapper.result_to_response(result)

@@ -30,11 +30,9 @@ class LangfuseService:
         metadata: Dict[str, Any] | None = None,
     ) -> Any:
         """Create a new trace."""
-        return self.client.trace(
-            name=name,
-            user_id=user_id,
-            metadata=metadata or {},
-        )
+        trace_id = self.client.create_trace_id()
+        # Return a simple object with the trace_id
+        return type('Trace', (), {'id': trace_id, 'name': name, 'metadata': metadata or {}})()
 
     def flush(self) -> None:
         """Flush all pending events to Langfuse."""

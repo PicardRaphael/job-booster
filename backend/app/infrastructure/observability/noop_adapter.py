@@ -3,8 +3,8 @@ No-Op Observability Adapter.
 
 Infrastructure Layer - Clean Architecture
 
-Adapter vide pour désactiver l'observabilité (tests, dev).
-Implémente IObservabilityService sans rien faire.
+Adapter vide pour dÃ©sactiver l'observabilitÃ© (tests, dev).
+ImplÃ©mente IObservabilityService sans rien faire.
 """
 
 from typing import Any, Dict
@@ -20,25 +20,25 @@ logger = get_logger(__name__)
 
 class NoOpObservabilityAdapter(IObservabilityService):
     """
-    Adapter No-Op pour observabilité.
+    Adapter No-Op pour observabilitÃ©.
 
-    Responsabilité (SRP):
-    - Implémenter IObservabilityService sans action
-    - Permettre de désactiver l'observabilité facilement
+    ResponsabilitÃ© (SRP):
+    - ImplÃ©menter IObservabilityService sans action
+    - Permettre de dÃ©sactiver l'observabilitÃ© facilement
     - Une seule raison de changer: si l'interface change
 
     Pourquoi un No-Op adapter?
     - Tests: Pas besoin de Langfuse pour tester
-    - Dev: Développer sans compte Langfuse
-    - Performance: Désactiver observability en prod si besoin
-    - Null Object Pattern: Évite les if/else partout
+    - Dev: DÃ©velopper sans compte Langfuse
+    - Performance: DÃ©sactiver observability en prod si besoin
+    - Null Object Pattern: Ã‰vite les if/else partout
 
     Example d'usage:
         >>> # En tests
         >>> adapter = NoOpObservabilityAdapter()
         >>> trace = adapter.create_trace("test", {})
         >>> print(trace.trace_id)
-        "noop"  # Pas de vraie trace créée
+        "noop"  # Pas de vraie trace crÃ©Ã©e
 
         >>> # Dans le Container (tests)
         >>> def observability_service():
@@ -52,19 +52,19 @@ class NoOpObservabilityAdapter(IObservabilityService):
         """
         Initialise l'adapter No-Op.
 
-        Aucune connexion, aucune dépendance externe.
+        Aucune connexion, aucune dÃ©pendance externe.
         """
         logger.info("noop_observability_adapter_initialized")
 
     def create_trace(self, name: str, metadata: Dict[str, Any]) -> TraceContext:
         """
-        "Crée" une trace factice.
+        "CrÃ©e" une trace factice.
 
         Ne fait rien, retourne juste un TraceContext avec ID "noop".
 
         Args:
-            name: Nom de la trace (ignoré)
-            metadata: Métadonnées (conservées pour cohérence)
+            name: Nom de la trace (ignorÃ©)
+            metadata: MÃ©tadonnÃ©es (conservÃ©es pour cohÃ©rence)
 
         Returns:
             TraceContext avec trace_id="noop"
@@ -93,12 +93,12 @@ class NoOpObservabilityAdapter(IObservabilityService):
         """
         "Flush" factice.
 
-        Ne fait rien (pas de traces à envoyer).
+        Ne fait rien (pas de traces Ã  envoyer).
 
         Example:
             >>> adapter = NoOpObservabilityAdapter()
             >>> adapter.flush()  # Ne fait rien
         """
         logger.debug("noop_flush_called")
-        # Rien à faire
+        # Rien Ã  faire
         pass

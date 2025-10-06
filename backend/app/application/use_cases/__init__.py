@@ -32,13 +32,7 @@ from app.application.use_cases.rerank_documents import RerankDocumentsUseCase
 from app.application.use_cases.search_documents import SearchDocumentsUseCase
 from app.application.use_cases.trace_generation import TraceGenerationUseCase
 
-# Legacy (à supprimer après migration)
-from app.application.use_cases.generate_application_content import (
-    GenerateApplicationContentUseCase,
-)
-
 __all__ = [
-    # Use cases atomiques
     "AnalyzeJobOfferUseCase",
     "SearchDocumentsUseCase",
     "RerankDocumentsUseCase",
@@ -46,6 +40,4 @@ __all__ = [
     "GenerateLinkedInUseCase",
     "GenerateCoverLetterUseCase",
     "TraceGenerationUseCase",
-    # Legacy
-    "GenerateApplicationContentUseCase",
 ]

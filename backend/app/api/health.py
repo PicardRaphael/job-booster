@@ -1,7 +1,7 @@
 """Health check and system status endpoints."""
 
 from datetime import datetime
-from typing import Dict
+from typing import Any, Dict
 
 from fastapi import APIRouter
 
@@ -31,7 +31,7 @@ async def health_check() -> Dict[str, str]:
 
 
 @router.get("/status")
-async def detailed_status() -> Dict[str, any]:
+async def detailed_status() -> Dict[str, Any]:
     """
     Detailed system status with all services.
 
@@ -117,7 +117,7 @@ async def detailed_status() -> Dict[str, any]:
 
 
 @router.get("/info")
-async def system_info() -> Dict[str, any]:
+async def system_info() -> Dict[str, Any]:
     """
     System information and configuration.
 

@@ -3,6 +3,7 @@
 ## 📐 Principes de Conception
 
 ### SOLID
+
 - **Single Responsibility** : Chaque module a une responsabilité unique
 - **Open/Closed** : Extension sans modification via interfaces
 - **Liskov Substitution** : Services interchangeables via abstractions
@@ -10,6 +11,7 @@
 - **Dependency Inversion** : Dépendances via abstractions
 
 ### Clean Architecture
+
 - **Séparation des couches** : Core → Services → API → Agents
 - **Indépendance des frameworks** : Business logic isolée
 - **Testabilité** : Chaque couche testable indépendamment
@@ -78,6 +80,7 @@ graph LR
 ```
 
 **Classes impliquées** :
+
 - `IngestionPipeline` : Orchestrateur principal
 - `PDFProcessor` : Traitement PDF (pymupdf4llm)
 - `MarkdownProcessor` : Traitement Markdown (LangChain)
@@ -107,6 +110,7 @@ graph TD
 ```
 
 **Classes impliquées** :
+
 - `GenerateRequest` : Schéma requête (Pydantic)
 - `QdrantService` : Recherche vectorielle
 - `RerankerService` : Reranking résultats
@@ -130,11 +134,11 @@ email_writer:
   llm: openai/gpt-4o-mini
 
 linkedin_writer:
-  role: "Spécialiste Messages LinkedIn"
+  role: 'Spécialiste Messages LinkedIn'
   llm: google/gemini-1.5-pro
 
 letter_writer:
-  role: "Rédacteur de Lettres"
+  role: 'Rédacteur de Lettres'
   llm: openai/gpt-4o-mini
 ```
 
@@ -143,12 +147,12 @@ letter_writer:
 ```yaml
 analyze_offer:
   description: "Analyser l'offre : {job_offer}"
-  expected_output: "JSON structuré avec infos clés"
+  expected_output: 'JSON structuré avec infos clés'
   agent: analyzer
 
 write_email:
-  description: "Rédiger email basé sur {analysis} et {rag_context}"
-  expected_output: "Email 150-200 mots"
+  description: 'Rédiger email basé sur {analysis} et {rag_context}'
+  expected_output: 'Email 150-200 mots'
   agent: email_writer
   context: [analyze_offer]
 ```
@@ -174,6 +178,7 @@ class JobApplicationCrew:
 ```
 
 **Avantages** :
+
 - ✅ Configuration déclarative (YAML)
 - ✅ Facile à maintenir et modifier
 - ✅ Pas de recompilation nécessaire
@@ -183,6 +188,7 @@ class JobApplicationCrew:
 ## 📊 Services (Singleton Pattern)
 
 ### EmbeddingService
+
 ```python
 _embedding_service: EmbeddingService | None = None
 
@@ -194,25 +200,32 @@ def get_embedding_service() -> EmbeddingService:
 ```
 
 **Rôle** :
+
 - Chargement modèle `intfloat/multilingual-e5-base`
 - Génération embeddings textes
 - Cache du modèle en mémoire
 
 ### QdrantService
+
 **Rôle** :
+
 - Connexion Qdrant
 - Gestion collection `user_info` (cluster: `jobbooster`)
 - Recherche vectorielle avec seuil de similarité
 - Upsert de documents
 
 ### RerankerService
+
 **Rôle** :
-- Modèle `bclavie/bge-reranker-v2-m3`
+
+- Modèle `bclavie/bge-reranker-base`
 - Reranking sémantique des résultats RAG
 - Amélioration de la précision
 
 ### LangfuseService
+
 **Rôle** :
+
 - Tracing LLM calls
 - Métriques de coûts et performance
 - Observabilité complète
@@ -236,7 +249,7 @@ class Settings(BaseSettings):
 
     # Models
     embedding_model: str = "intfloat/multilingual-e5-base"
-    reranker_model: str = "bclavie/bge-reranker-v2-m3"
+    reranker_model: str = "bclavie/bge-reranker-base"
 ```
 
 **Chargement** : Variables d'environnement `.env`
@@ -244,12 +257,14 @@ class Settings(BaseSettings):
 ## 🧪 Tests & Qualité
 
 ### Outils
+
 - **pytest** : Tests unitaires
 - **black** : Formatage code
 - **ruff** : Linting
 - **mypy** : Type checking (strict mode)
 
 ### Structure tests (à implémenter)
+
 ```
 tests/
 ├── unit/
@@ -264,15 +279,17 @@ tests/
 ## 📦 Déploiement
 
 ### Docker Compose
+
 ```yaml
 services:
-  qdrant:        # Port 6333/6334
-  langfuse-db:   # PostgreSQL
-  langfuse:      # Port 3001
-  backend:       # Port 8000 (FastAPI)
+  qdrant: # Port 6333/6334
+  langfuse-db: # PostgreSQL
+  langfuse: # Port 3001
+  backend: # Port 8000 (FastAPI)
 ```
 
 ### Production
+
 - **Backend** : Railway/Render + Qdrant Cloud
 - **Frontend** : Vercel
 - **Monitoring** : Langfuse Cloud
@@ -280,17 +297,20 @@ services:
 ## 🔄 Évolutivité
 
 ### Ajout d'un nouvel agent
+
 1. Définir dans `agents.yaml`
 2. Ajouter tâche dans `tasks.yaml`
 3. Créer méthode `@agent` et `@task`
 4. Modifier `build_crew_for_output()`
 
 ### Ajout d'une nouvelle source
+
 1. Créer processor dans `scripts/ingest/`
 2. Ajouter méthode dans `IngestionPipeline`
 3. Appeler dans `collect_all_documents()`
 
 ### Ajout d'un nouveau LLM
+
 1. Ajouter clé API dans `Settings`
 2. Instancier LLM dans `JobApplicationCrew.__init__()`
 3. Référencer dans `agents.yaml` : `llm: provider/model`
@@ -298,6 +318,7 @@ services:
 ## 🎯 Patterns & Best Practices
 
 ### ✅ Utilisé
+
 - **Singleton** : Services (embeddings, qdrant, reranker)
 - **Factory** : Création dynamique de Crews
 - **Strategy** : Choix du writer selon output_type
@@ -305,6 +326,7 @@ services:
 - **Decorator** : `@agent`, `@task`, `@crew` (CrewAI)
 
 ### 📝 Conventions
+
 - **Naming** : `snake_case` pour fonctions/variables, `PascalCase` pour classes
 - **Strings** : Triple backticks ` ``` ` pour multi-lignes, pas de f-strings inutiles
 - **Logging** : Structured logs avec `structlog` (JSON)

@@ -3,8 +3,8 @@ Langfuse Observability Adapter.
 
 Infrastructure Layer - Clean Architecture
 
-Adapter pour intégrer Langfuse (service d'observabilité).
-Implémente IObservabilityService du domain.
+Adapter pour intÃ©grer Langfuse (service d'observabilitÃ©).
+ImplÃ©mente IObservabilityService du domain.
 """
 
 from typing import Any, Dict
@@ -21,17 +21,17 @@ logger = get_logger(__name__)
 
 class LangfuseAdapter(IObservabilityService):
     """
-    Adapter Langfuse pour observabilité.
+    Adapter Langfuse pour observabilitÃ©.
 
-    Responsabilité (SRP):
+    ResponsabilitÃ© (SRP):
     - Wrapper le service Langfuse legacy
-    - Implémenter l'interface IObservabilityService
+    - ImplÃ©menter l'interface IObservabilityService
     - Une seule raison de changer: si l'API Langfuse change
 
     Pattern Adapter:
-    - Adapte le service Langfuse existant à l'interface domain
-    - Permet de changer de service d'observabilité facilement
-    - Isole le domain des détails d'implémentation Langfuse
+    - Adapte le service Langfuse existant Ã  l'interface domain
+    - Permet de changer de service d'observabilitÃ© facilement
+    - Isole le domain des dÃ©tails d'implÃ©mentation Langfuse
 
     Example:
         >>> adapter = LangfuseAdapter()
@@ -49,18 +49,18 @@ class LangfuseAdapter(IObservabilityService):
 
         Note:
         On utilise get_langfuse_service() qui est un singleton.
-        Cela évite de créer plusieurs connexions Langfuse.
+        Cela Ã©vite de crÃ©er plusieurs connexions Langfuse.
         """
         self.langfuse = get_langfuse_service()
         logger.info("langfuse_adapter_initialized")
 
     def create_trace(self, name: str, metadata: Dict[str, Any]) -> TraceContext:
         """
-        Crée une trace Langfuse.
+        CrÃ©e une trace Langfuse.
 
         Args:
             name: Nom de la trace (ex: "job_application_generation")
-            metadata: Métadonnées à associer
+            metadata: MÃ©tadonnÃ©es Ã  associer
                      Ex: {"content_type": "email", "user_id": "123"}
 
         Returns:
@@ -80,7 +80,7 @@ class LangfuseAdapter(IObservabilityService):
         langfuse_trace = self.langfuse.create_trace(name=name, metadata=metadata)
 
         # Extraire trace_id
-        # Langfuse peut retourner différents formats, on gère les cas
+        # Langfuse peut retourner diffÃ©rents formats, on gÃ¨re les cas
         if hasattr(langfuse_trace, "id"):
             trace_id = str(langfuse_trace.id)
         elif isinstance(langfuse_trace, dict) and "id" in langfuse_trace:
@@ -102,14 +102,14 @@ class LangfuseAdapter(IObservabilityService):
 
     def flush(self) -> None:
         """
-        Force l'envoi des traces à Langfuse.
+        Force l'envoi des traces Ã  Langfuse.
 
         Langfuse buffer les traces et les envoie par batch.
-        Cette méthode force l'envoi immédiat.
+        Cette mÃ©thode force l'envoi immÃ©diat.
 
         Important:
-        À appeler avant la fin d'une requête pour s'assurer
-        que toutes les traces sont envoyées.
+        Ã€ appeler avant la fin d'une requÃªte pour s'assurer
+        que toutes les traces sont envoyÃ©es.
 
         Example:
             >>> adapter.create_trace("test", {})

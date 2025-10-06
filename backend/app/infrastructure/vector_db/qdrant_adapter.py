@@ -34,7 +34,7 @@ class QdrantAdapter(IDocumentRepository):
         score_threshold: float = 0.5,
     ) -> List[Dict[str, Any]]:
         """Search for similar documents (async)."""
-        return await self.qdrant_service.search(
+        return self.qdrant_service.search(
             query=query,
             limit=limit,
             score_threshold=score_threshold,

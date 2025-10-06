@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   # Qdrant Vector Database
@@ -81,7 +81,7 @@ services:
 
       # Models
       - EMBEDDING_MODEL=intfloat/multilingual-e5-base
-      - RERANKER_MODEL=bclavie/bge-reranker-v2-m3
+      - RERANKER_MODEL=bclavie/bge-reranker-base
     volumes:
       - ./backend:/app
       - backend_cache:/root/.cache
