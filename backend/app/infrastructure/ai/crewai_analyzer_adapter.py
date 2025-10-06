@@ -7,6 +7,7 @@ Adapter pour analyser les offres d'emploi avec CrewAI.
 Implémente IAnalyzerService du domain.
 """
 
+import json
 from typing import Any, Dict
 
 from crewai import Process, Task
@@ -69,29 +70,32 @@ class CrewAIAnalyzerAdapter(IAnalyzerService):
         self.task_config = task_config
         logger.info("crewai_analyzer_adapter_initialized")
 
-    def analyze(self, job_offer: JobOffer) -> JobAnalysis:
+    def analyze(self, job_offer: JobOffer, content_type: str) -> JobAnalysis:
         """
         Analyse une offre d'emploi avec CrewAI.
 
         Args:
             job_offer: Offre d'emploi à analyser (entity)
+            content_type: Type de contenu demandé (letter, email, linkedin)
 
         Returns:
-            JobAnalysis avec summary, skills, position, company
+            JobAnalysis avec summary, skills, position, company, content_type
 
         Example:
             >>> job_offer = JobOffer(text="Développeur Python...")
-            >>> analysis = adapter.analyze(job_offer)
+            >>> analysis = adapter.analyze(job_offer, "letter")
             >>> print(analysis.position)
             "Développeur Python"
             >>> print(analysis.key_skills)
             ["Python", "FastAPI", "Docker"]
+            >>> print(analysis.content_type)
+            "letter"
         """
-        logger.info("analyzing_job_offer_with_crewai")
+        logger.info("analyzing_job_offer_with_crewai", content_type=content_type)
 
         # Créer l'agent avec Builder pattern
         llm = self.llm_provider.create_llm("analyzer")
-        agent = (
+        analyzer_agent = (
             AgentBuilder()
             .from_config(self.agent_config)
             .with_llm(llm)
@@ -100,30 +104,81 @@ class CrewAIAnalyzerAdapter(IAnalyzerService):
 
         # Créer la task
         task = Task(
-            description=self.task_config.get("description", "Analyze job offer"),
+            description=self.task_config.get("description", "Analyze job offer").format(
+                job_offer=job_offer.text
+            ),
             expected_output=self.task_config.get("expected_output", "Analysis"),
-            agent=agent,
+            agent=analyzer_agent,
         )
 
         # Créer et exécuter le crew
         crew = (
             CrewBuilder()
-            .add_agent(agent)
+            .add_agent(analyzer_agent)
             .add_task(task)
             .with_process(Process.sequential)
             .build()
         )
 
-        result = crew.kickoff(inputs={"job_offer": job_offer.text})
-        summary = str(result)
+        result = crew.kickoff(inputs={"job_offer": job_offer.text, "agent": content_type})
+        raw_output = str(result)
+        logger.info("analysis_completed", output_length=len(raw_output))
 
-        # TODO: Parser la sortie structurée du LLM
-        # Pour l'instant, retour simple avec valeurs hardcodées
-        logger.info("analysis_completed", summary_length=len(summary))
+        # 4. Parsing du JSON renvoyé
+        try:
+            # Try to extract JSON from the output (it might be wrapped in markdown or text)
+            # First, try direct parsing
+            parsed = json.loads(raw_output)
+            logger.info("analysis_parsed_successfully", method="direct")
+        except json.JSONDecodeError:
+            # Try to find JSON in code blocks
+            import re
+            json_match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', raw_output, re.DOTALL)
+            if json_match:
+                try:
+                    parsed = json.loads(json_match.group(1))
+                    logger.info("analysis_parsed_successfully", method="code_block")
+                except json.JSONDecodeError:
+                    logger.warning("Invalid JSON in code block")
+                    parsed = {}
+            else:
+                # Try to find JSON anywhere in the text
+                json_match = re.search(r'\{[^{}]*"poste"[^{}]*\}', raw_output, re.DOTALL)
+                if json_match:
+                    try:
+                        parsed = json.loads(json_match.group(0))
+                        logger.info("analysis_parsed_successfully", method="regex")
+                    except json.JSONDecodeError:
+                        logger.warning("Invalid JSON output from analyzer")
+                        parsed = {}
+                else:
+                    logger.warning("No JSON found in analyzer output")
+                    parsed = {}
+
+        # Log what we got
+        logger.info("parsed_analysis",
+                   has_position=bool(parsed.get("poste")),
+                   has_company=bool(parsed.get("entreprise")),
+                   keys=list(parsed.keys()) if parsed else [])
+
+        # 5. Construction de l'entité JobAnalysis avec toutes les infos
+        # Extract position with fallback
+        position = parsed.get("poste")
+        if not position:
+            # Try to extract from summary
+            logger.warning("position_missing_from_json_trying_fallback")
+            # Use first 100 chars of job offer as fallback
+            position = "Developer"  # Safe default
 
         return JobAnalysis(
-            summary=summary,
-            key_skills=["Python", "FastAPI"],  # TODO: Extraire du summary
-            position="Software Engineer",  # TODO: Extraire du summary
-            company=None,  # TODO: Extraire du summary
+            summary=raw_output,
+            key_skills=parsed.get("compétences") or parsed.get("technologies") or [],
+            position=position,
+            company=parsed.get("entreprise"),
+            missions=parsed.get("missions", []),
+            sector=parsed.get("secteur"),
+            soft_skills=parsed.get("soft_skills", []),
+            values=parsed.get("valeurs", []),
+            tone=parsed.get("ton_recruteur"),
+            content_type=content_type,
         )

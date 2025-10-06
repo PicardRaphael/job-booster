@@ -1,9 +1,11 @@
 """Reranker adapter - implements IRerankerService via HuggingFace API HTTP."""
 
 from typing import List, Dict, Any
+import asyncio
+import inspect
 
 from app.domain.services.reranker_service import IRerankerService
-from app.services.huggingface_reranker import get_hf_reranker_service
+from app.services.local_reranker import get_local_reranker_service
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
@@ -37,9 +39,9 @@ class RerankerAdapter(IRerankerService):
         """
         Initialize adapter with HuggingFace reranker service.
 
-        Uses get_hf_reranker_service() singleton.
+        Uses get_local_reranker_service() singleton.
         """
-        self.reranker_service = get_hf_reranker_service()
+        self.reranker_service = get_local_reranker_service()
         logger.info("reranker_adapter_initialized")
 
     async def rerank(
@@ -48,9 +50,16 @@ class RerankerAdapter(IRerankerService):
         documents: List[Dict[str, Any]],
         top_k: int = 5,
     ) -> List[Dict[str, Any]]:
-        """Rerank documents by relevance via HuggingFace API."""
-        return await self.reranker_service.rerank(
-            query=query,
-            documents=documents,
-            top_k=top_k,
-        )
+        """Rerank documents by relevance via selected provider.
+
+        Supports both async and sync implementations of the underlying service.
+        """
+        if inspect.iscoroutinefunction(self.reranker_service.rerank):
+            return await self.reranker_service.rerank(
+                query=query,
+                documents=documents,
+                top_k=top_k,
+            )
+
+        # If the impl is synchronous, offload to a worker thread
+        return await asyncio.to_thread(self.reranker_service.rerank, query, documents, top_k)

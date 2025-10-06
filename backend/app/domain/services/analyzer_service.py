@@ -9,7 +9,7 @@ class IAnalyzerService(ABC):
     """Interface for job offer analysis service."""
 
     @abstractmethod
-    def analyze(self, job_offer: JobOffer) -> JobAnalysis:
+    def analyze(self, job_offer: JobOffer, content_type: str = "letter") -> JobAnalysis:
         """
         Analyze job offer and extract structured information.
 

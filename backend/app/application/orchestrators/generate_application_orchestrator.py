@@ -96,7 +96,7 @@ class GenerateApplicationOrchestrator:
             "letter": letter_use_case,
         }
 
-    def execute(self, command: GenerateApplicationCommand) -> GenerationResultDTO:
+    async def execute(self, command: GenerateApplicationCommand) -> GenerationResultDTO:
         """
         Exécute le workflow complet de génération.
 
@@ -142,6 +142,7 @@ class GenerateApplicationOrchestrator:
         analyze_command = AnalyzeJobOfferCommand(
             job_offer=command.job_offer,
             trace_context=trace_dto,
+            content_type=command.content_type,  # Pass content_type to analyzer
         )
         analysis_dto = self.analyze_use_case.execute(analyze_command)
         logger.info(
@@ -151,13 +152,13 @@ class GenerateApplicationOrchestrator:
         )
 
         # === ÉTAPE 3: Chercher documents RAG ===
-        search_query = self._build_search_query_from_analysis(analysis_dto)
+        search_query = self._build_search_query_from_analysis(analysis_dto, command.content_type)
         search_command = SearchDocumentsCommand(
             query=search_query,
             limit=10,  # Top 10 de Qdrant
             score_threshold=0.5,  # Minimum 50% similarité
         )
-        documents_dto = self.search_use_case.execute(search_command)
+        documents_dto = await self.search_use_case.execute(search_command)
         logger.info(
             "orchestrator_search_completed",
             documents_found=len(documents_dto),
@@ -176,7 +177,7 @@ class GenerateApplicationOrchestrator:
             documents=documents_dto,
             top_k=5,  # Top 5 après reranking
         )
-        reranked_documents_dto = self.rerank_use_case.execute(rerank_command)
+        reranked_documents_dto = await self.rerank_use_case.execute(rerank_command)
         logger.info(
             "orchestrator_rerank_completed",
             documents_reranked=len(reranked_documents_dto),
@@ -223,38 +224,70 @@ class GenerateApplicationOrchestrator:
 
         return result
 
-    def _build_search_query_from_analysis(self, analysis_dto) -> str:
+    def _build_search_query_from_analysis(self, analysis_dto, content_type: str) -> str:
         """
-        Construit une query de recherche depuis l'analyse.
+        Construit une query de recherche ULTRA-OPTIMISÉE depuis l'analyse.
 
-        Combine: position + top 5 skills + company
+        Combine TOUTES les infos de l'analyzer pour maximiser la pertinence:
+        - Position + compétences techniques + soft skills
+        - Secteur + valeurs + missions
+        - Keywords spécifiques au content_type
 
         Args:
-            analysis_dto: JobAnalysisDTO avec position, skills, company
+            analysis_dto: JobAnalysisDTO complet avec toutes les infos
+            content_type: Type de contenu (letter, email, linkedin)
 
         Returns:
-            Query string pour Qdrant
-            Ex: "Développeur Python FastAPI Docker AWS Acme Corp"
+            Query string pour Qdrant ultra-optimisée
+            Ex: "Développeur Python React FastAPI IA LangChain e-commerce innovation
+                 autonomie React Next.js TypeScript lettre motivation RULESET LETTER"
 
-        Note:
-            Cette logique est dupliquée de JobAnalysis.get_search_query()
-            dans le domain. On pourrait refactorer pour éviter la duplication,
-            mais ici on travaille avec des DTOs, pas des entities.
+        Stratégie:
+            1. Position (poids le plus fort)
+            2. Compétences techniques (top 5)
+            3. Soft skills (si pertinentes)
+            4. Secteur d'activité
+            5. Valeurs entreprise
+            6. Keywords content_type (RULESET)
 
-            Options:
-            1. Garder la duplication (simple)
-            2. Créer un QueryBuilder service
-            3. Convertir DTO → Entity juste pour la query
-
-            Pour l'instant, on garde simple (option 1).
+        Cela permet au RAG de récupérer:
+        - Les bons RULESETS
+        - Les expériences pertinentes
+        - Les compétences qui matchent
         """
-        parts = [analysis_dto.position]
+        parts = []
 
+        # 1. Position (toujours en premier)
+        parts.append(analysis_dto.position)
+
+        # 2. Compétences techniques (top 8 pour couvrir large)
         if analysis_dto.key_skills:
-            # Top 5 skills maximum
-            parts.extend(analysis_dto.key_skills[:5])
+            parts.extend(analysis_dto.key_skills[:8])
 
-        if analysis_dto.company:
-            parts.append(analysis_dto.company)
+        # 3. Secteur d'activité (aide à trouver expériences pertinentes)
+        if analysis_dto.sector:
+            parts.append(analysis_dto.sector)
 
-        return " ".join(parts)
+        # 4. Valeurs entreprise (aide à personnaliser)
+        if analysis_dto.values:
+            # Top 3 valeurs maximum
+            parts.extend(analysis_dto.values[:3])
+
+        # 5. Soft skills pertinentes (top 3)
+        if analysis_dto.soft_skills:
+            parts.extend(analysis_dto.soft_skills[:3])
+
+        # 6. Keywords content_type (CRUCIAL pour récupérer les bons RULESETS)
+        content_keywords = {
+            "letter": "lettre motivation RULESET LETTER Structure signature",
+            "email": "email candidature message RULESET EMAIL court",
+            "linkedin": "LinkedIn post message réseau RULESET LINKEDIN",
+        }
+        parts.append(content_keywords.get(content_type, ""))
+
+        # 7. Ajout de keywords génériques pour maximiser retrieval
+        parts.append("React Next.js TypeScript IA Python")  # Tes skills principaux
+
+        query = " ".join(filter(None, parts))  # Remove empty strings
+        logger.info("rag_search_query_built", query=query[:200])  # Log first 200 chars
+        return query

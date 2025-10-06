@@ -6,7 +6,7 @@ This entity represents structured analysis results from a job offer.
 Core business object used for RAG retrieval and content generation.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List
 
 
@@ -23,6 +23,12 @@ class JobAnalysis:
         key_skills: List of required technical and soft skills
         position: Job title/position name
         company: Company name (optional)
+        missions: List of main missions/responsibilities
+        sector: Industry sector
+        soft_skills: List of soft skills required
+        values: Company values
+        tone: Recruiter tone (formel, convivial, etc.)
+        content_type: Type of content to generate (letter, email, linkedin)
 
     Raises:
         ValueError: If required fields are missing
@@ -43,6 +49,12 @@ class JobAnalysis:
     key_skills: List[str]  # Technical and soft skills required
     position: str  # Job title/role
     company: str | None = None  # Company name (optional)
+    missions: List[str] = field(default_factory=list)  # Main missions
+    sector: str | None = None  # Industry sector
+    soft_skills: List[str] = field(default_factory=list)  # Soft skills
+    values: List[str] = field(default_factory=list)  # Company values
+    tone: str | None = None  # Recruiter tone
+    content_type: str = "letter"  # Content type to generate
 
     def __post_init__(self) -> None:
         """

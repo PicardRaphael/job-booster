@@ -24,7 +24,8 @@ class AnalyzeJobOfferCommand:
     Usage:
         >>> command = AnalyzeJobOfferCommand(
         ...     job_offer=JobOfferDTO(text="Développeur Python..."),
-        ...     trace_context=TraceContextDTO(trace_id="123", metadata={})
+        ...     trace_context=TraceContextDTO(trace_id="123", metadata={}),
+        ...     content_type="letter"
         ... )
         >>> result = analyze_use_case.execute(command)
         >>> print(result.position)
@@ -33,3 +34,4 @@ class AnalyzeJobOfferCommand:
 
     job_offer: JobOfferDTO  # Offre à analyser
     trace_context: TraceContextDTO | None = None  # Contexte de trace (optionnel)
+    content_type: str = "letter"  # Type de contenu demandé (letter, email, linkedin)

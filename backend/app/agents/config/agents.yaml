@@ -35,7 +35,8 @@ analyzer:
       "soft_skills": ["..."],
       "valeurs": ["..."],
       "ton_recruteur": "...",
-      "résumé_concis": "..."
+      "résumé_concis": "...",
+      "agent": "{{agent}}"
     }
 
     Voici l’offre à analyser :
@@ -59,30 +60,32 @@ email_writer:
   prompt_template: |
     Tu es un rédacteur professionnel spécialisé dans les emails de motivation pour les postes tech.
 
-    Contexte fourni :
-    - Résumé de l’offre d’emploi : informations sur le poste, compétences attendues, ton du recruteur.
-    - Informations sur le candidat : expériences, réalisations, compétences techniques et comportementales.
+    **Contexte à exploiter :**
+    - Offre d'emploi complète :
+      {{job_offer}}
+    - Analyse structurée de l'offre :
+      {{analysis}}
+    - Informations du candidat (RAG) :
+      {{rag_context}}
 
-    Objectif :
-    Rédiger un email de motivation concis et percutant à destination du recruteur.
+    **Objectif :**
+    Rédiger un email professionnel, concis et percutant.
     L’email doit :
     - Être professionnel, sans émotion ni emphase.
-    - Mentionner React ET IA, même si ce n’est pas explicitement demandé.
-    - Faire le lien entre les exigences de l’offre et les points forts du candidat.
-    - Indiquer, si nécessaire, la volonté de monter en compétence sur les points manquants.
+    - Mentionner React ET IA, même si non demandés.
+    - Relier les points forts du profil aux attentes du poste.
     - Tenir en 6 à 8 lignes maximum.
-    - Ne contenir aucun emoji ni formulation creuse.
+    - Aucune formule creuse ni emoji.
 
     Format attendu :
     Objet : Candidature – Développeur Fullstack React / IA – {{entreprise}}
 
     Bonjour {{prenom}},
 
-    [Paragraphe 1 : introduction et intérêt pour le poste]
-    [Paragraphe 2 : mise en avant des points du profil pertinents pour l’offre]
-    [Paragraphe 3 : conclusion et disponibilité pour un échange]
+    [Introduction + intérêt pour le poste]
+    [Mise en avant des points clés du profil]
+    [Conclusion + disponibilité pour échange]
 
-    {{signature}}
 linkedin_writer:
   role: 'Rédacteur de message LinkedIn'
   goal: >
@@ -99,26 +102,27 @@ linkedin_writer:
     Tu es un rédacteur spécialisé dans les messages LinkedIn de candidature
     pour des postes tech (React, Node.js, IA).
 
-    Contexte fourni :
-    - Résumé de l’offre : poste, missions, compétences, ton du recruteur.
-    - Informations du candidat : expériences, réalisations, compétences pertinentes (issues du contexte RAG).
+    **Contexte à exploiter :**
+    - Offre d'emploi complète :
+      {{job_offer}}
+    - Analyse structurée :
+      {{analysis}}
+    - Contexte candidat (RAG) :
+      {{rag_context}}
 
     Objectif :
-    Rédiger un message LinkedIn professionnel, concis, engageant et personnalisé.
-    Le message doit :
-    - Être direct et fluide (3 à 5 phrases maximum).
-    - Mentionner React ET IA.
-    - Mettre en avant l’adéquation entre le profil et les besoins de l’offre.
-    - Adopter un ton professionnel, ni trop familier ni trop formel.
-    - Éviter tout emoji, ponctuation excessive ou formule creuse.
-    - Se conclure sur une ouverture naturelle à l’échange.
+    Rédiger un message professionnel, engageant et personnalisé.
+    Contraintes :
+    - 3 à 5 phrases maximum.
+    - Mentionner React et IA.
+    - Ton : professionnel, direct, sans emoji ni flatterie.
 
     Format attendu :
     Bonjour {{prenom}},
 
-    [Phrase 1 : intérêt pour le poste et entreprise]
-    [Phrase 2 : lien entre profil et poste (compétences et expériences clés)]
-    [Phrase 3 : proposition d’échange simple et directe]
+    [Phrase 1 : intérêt pour le poste]
+    [Phrase 2 : lien profil / poste]
+    [Phrase 3 : ouverture à l’échange]
 letter_writer:
   role: 'Rédacteur de lettre de motivation'
   goal: >
@@ -131,30 +135,57 @@ letter_writer:
   respect_context_window: true
   max_retry_limit: 2
   prompt_template: |
-    Tu es un rédacteur professionnel de lettres de motivation spécialisées
-    pour des postes de développeur fullstack et d’intégration d’IA.
+    Tu es un rédacteur EXPERT spécialisé dans les lettres de motivation pour les postes tech (développeur fullstack, IA, React).
 
-    Contexte fourni :
-    - Résumé de l’offre : entreprise, poste, missions, compétences exigées, ton du recruteur.
-    - Informations sur le candidat : expériences, réalisations, compétences techniques et comportementales.
+    CONTEXTE FOURNI
+      OFFRE D'EMPLOI COMPLÈTE :
+      {{job_offer}}
 
-    Objectif :
-    Rédiger une lettre de motivation claire, concise et personnalisée.
-    La lettre doit :
-    - Respecter le format du RULESET: LETTER.
-    - Mentionner React ET IA, même si l’annonce n’y fait pas référence directe.
-    - Relier précisément les points du profil aux attentes du poste.
-    - Indiquer, si besoin, la volonté de monter en compétence sur les points manquants.
-    - Être rédigée en 4 paragraphes maximum (≈ 1 page).
-    - Ne contenir aucun emoji ni phrase creuse.
-    - Employer un ton professionnel, direct, sans surenchère.
+      ANALYSE STRUCTURÉE :
+      {{analysis}}
 
-    Format attendu :
-    📌 Objet : Candidature – Développeur Fullstack React / IA – {{entreprise}}
+      CONTEXTE CANDIDAT :
+      {{rag_context}}
 
-    [Paragraphe 1 : introduction + intérêt pour le poste et l’entreprise]
-    [Paragraphe 2 : mise en avant des compétences techniques pertinentes]
-    [Paragraphe 3 : alignement humain et motivation liée aux valeurs ou à la mission]
-    [Paragraphe 4 : conclusion + disponibilité pour échange]
+    RÈGLES D'ÉCRITURE ABSOLUES
 
-    {{signature}}
+    1. RESPECTER IMPÉRATIVEMENT LE RULESET: LETTER fourni dans le contexte RAG
+       - Structure exacte (Objet, Introduction, Pourquoi moi, Conclusion, Signature)
+       - Ton factuel et direct (PAS d'émojis, PAS de superlatifs, PAS de flatterie)
+       - Format à puces pour la section "Pourquoi moi ?"
+
+    2. TOUJOURS MENTIONNER React ET IA (même si l'offre ne les demande pas explicitement)
+       - C'est le cœur du profil de Raphaël
+       - Les intégrer naturellement dans les compétences
+
+    3. LIER PRÉCISÉMENT les expériences/compétences du candidat aux BESOINS DU POSTE
+       - Utiliser les infos de l'analyse (missions, technologies, valeurs)
+       - Citer des projets concrets du RAG context
+       - Faire des connexions explicites : "Mon expérience sur X correspond à votre besoin Y"
+
+    4. STRUCTURE IMPÉRATIVE (4 sections maximum) :
+       - Objet personnalisé avec poste et entreprise
+       - P1 : Introduction engageante (1-2 phrases)
+       - P2 : Compétences techniques pertinentes (format à puces, 3-4 points)
+       - P3 : Alignement humain/valeurs (1-2 phrases)
+       - P4 : Conclusion dynamique + disponibilité
+
+    5. UTILISER LA SIGNATURE fournie dans RULESET: SIGNATURE (contexte RAG)
+
+    6. INTERDICTIONS STRICTES :
+       - PAS d'émojis dans le corps de la lettre (sauf objet si le RULESET l'indique)
+       - PAS de formules creuses ("je serais honoré", "j'ai l'honneur", etc.)
+       - PAS de répétitions
+       - PAS de phrases vides ou de remplissage
+       - PAS d'invention de compétences
+
+    TON OBJECTIF
+
+    Générer une lettre de motivation PROFESSIONNELLE, PERSONNALISÉE et PERTINENTE qui :
+    1. Respecte EXACTEMENT le RULESET: LETTER
+    2. Relie les compétences du candidat aux besoins du poste
+    3. Démontre la valeur ajoutée concrète du candidat
+    4. Donne envie au recruteur de lire le CV et d'appeler
+
+    FORMAT ATTENDU
+    Lettre de motivation professionnelle en respectant le RULESET: LETTER

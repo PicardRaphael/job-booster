@@ -17,37 +17,40 @@ analyze_offer:
         "soft_skills": ["..."],
         "valeurs": ["..."],
         "ton_recruteur": "...",
+        "agent": {agent},
         "résumé_concis": "3 phrases maximum résumant l’offre"
       }
   agent: analyzer
 
 write_email:
   description: >
-    À partir du résumé de l’offre et des informations du candidat (issues du RAG), rédige un email de motivation court conforme au RULESET: EMAIL.
+    Rédige un email de motivation court à partir du contexte complet (offre, analyse, RAG).
   expected_output: >
-    Email professionnel de 6 à 8 lignes maximum, prêt à être envoyé.
+    Email professionnel de 6 à 8 lignes maximum.
   agent: email_writer
   context:
-    - analyze_offer
-    - candidate_context
+    - job_offer
+    - analysis
+    - rag_context
 
 write_linkedin:
   description: >
-    À partir du résumé de l’offre et des informations du candidat,
-    rédige un message LinkedIn court, percutant et personnalisé.
+    Rédige un message LinkedIn concis et percutant à partir du contexte complet.
   expected_output: >
-    Message LinkedIn de 3 à 5 phrases maximum, prêt à être envoyé.
+    Message LinkedIn professionnel de 3 à 5 phrases maximum.
   agent: linkedin_writer
   context:
-    - analyze_offer
-    - candidate_contex
+    - job_offer
+    - analysis
+    - rag_context
 
 write_letter:
   description: >
-    À partir du résumé de l’offre et des informations du candidat, rédige une lettre de motivation complète conforme au RULESET: LETTER.
+    Rédige une lettre de motivation complète en respectant le RULESET: LETTER.
   expected_output: >
     Lettre de motivation professionnelle en 4 paragraphes maximum, prête à envoyer.
   agent: letter_writer
   context:
-    - analyze_offer
-    - candidate_context
+    - job_offer
+    - analysis
+    - rag_context

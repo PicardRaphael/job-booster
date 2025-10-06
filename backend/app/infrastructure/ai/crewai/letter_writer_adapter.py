@@ -62,6 +62,17 @@ class LetterWriterAdapter(ILetterWriter):
     ) -> str:
         """Génère une lettre de motivation avec CrewAI."""
         logger.info("writing_cover_letter_with_crewai")
+        # 1. Construire le prompt final avec le contenu réel
+        prompt = self.agent_config.get("prompt_template", "")
+        prompt = (
+            prompt.replace("{{job_offer}}", job_offer.text.strip())
+            .replace("{{analysis}}", analysis.summary.strip())
+            .replace("{{rag_context}}", context.strip() if context else "")
+        )
+
+        # 2. Injecter ce prompt dans la config avant construction de l’agent
+        agent_config = self.agent_config.copy()
+        agent_config["prompt_template"] = prompt
 
         # Créer l'agent
         llm = self.llm_provider.create_llm("letter_writer")
@@ -88,13 +99,10 @@ class LetterWriterAdapter(ILetterWriter):
             .build()
         )
 
-        inputs = {
-            "job_offer": job_offer.text,
-            "analysis": analysis.summary,
-            "rag_context": context,
-        }
+        # 5. Debug : log du prompt rendu
+        logger.info("Rendered prompt (first 800 chars):\n" + prompt[:800])
 
-        result = crew.kickoff(inputs=inputs)
+        result = crew.kickoff()
         letter_content = str(result)
 
         logger.info("cover_letter_written", length=len(letter_content))
