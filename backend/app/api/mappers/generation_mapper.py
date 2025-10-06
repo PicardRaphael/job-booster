@@ -84,8 +84,9 @@ class GenerationMapper:
             SourceDTO(
                 id=doc.id,
                 text=doc.text[:200] + "..." if len(doc.text) > 200 else doc.text,
-                score=doc.rerank_score if doc.rerank_score else doc.score,
+                score=doc.score,
                 source=doc.source,
+                rerank_score=doc.rerank_score,
             )
             for doc in result.sources
         ]

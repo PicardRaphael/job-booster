@@ -1,5 +1,6 @@
 """Text chunking service for different document types (corrected version)."""
 
+import re
 from pathlib import Path
 from typing import Any, Dict, List
 
@@ -18,11 +19,12 @@ class ChunkerService:
     def __init__(self) -> None:
         """Initialize chunking service."""
         # Text splitter for fallback or large blocks
-        self.text_splitter = RecursiveCharacterTextSplitter(
+        self.text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
             chunk_size=settings.chunk_size,
             chunk_overlap=settings.chunk_overlap,
-            separators=["\n\n", "\n", " ", ""],
+            separators=["##", "###", "\n\n", "\n", ".", "!", "?"]
         )
+
 
         # Markdown structure splitter
         self.markdown_splitter = MarkdownHeaderTextSplitter(
@@ -164,8 +166,9 @@ class ChunkerService:
     def chunk_text(self, text: str, source: str = "text_input") -> List[Dict[str, Any]]:
         """Chunk raw text input."""
         logger.info("chunking_text", source=source, length=len(text))
+        clean_text = re.sub(r'\s+', ' ', text).strip()
 
-        chunks = self.text_splitter.split_text(text)
+        chunks = self.text_splitter.split_text(clean_text)
         documents = [
             {
                 "text": chunk.strip(),

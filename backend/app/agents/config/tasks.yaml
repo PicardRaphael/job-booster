@@ -1,56 +1,55 @@
 analyze_offer:
-  description: >
-    Analyse l’offre d’emploi fournie en texte brut.
-    Identifie les éléments clés (intitulé, type de poste, entreprise, stack technique, compétences exigées, qualités recherchées, ton de communication, valeurs implicites).
-
-    Offre d'emploi :
-    {job_offer}
-  expected_output: >
-    JSON contenant les sections suivantes :
+  description: |
+    Lis {job_offer} et rends un JSON strict conforme au schéma :
       {
-        "entreprise": "...",
-        "poste": "...",
-        "secteur": "...",
-        "missions": ["..."],
-        "compétences": ["..."],
-        "technologies": ["..."],
-        "soft_skills": ["..."],
-        "valeurs": ["..."],
-        "ton_recruteur": "...",
-        "agent": {agent},
-        "résumé_concis": "3 phrases maximum résumant l’offre"
+        "poste": string,
+        "entreprise": string,
+        "localisation": string,
+        "contrat": string,
+        "remote": string,
+        "salaire": string,
+        "missions": string[],
+        "exigences": string[],
+        "technologies": string[],
+        "seniorite": string,
+        "mots_cles": string[],
+        "resume_concis": string
       }
+    Sortie : uniquement l'objet JSON minifié (une ligne), zéro texte hors JSON.
+  expected_output: 'JSON strict, minifié, valide.'
   agent: analyzer
+  context: [job_offer]
+
+write_letter:
+  description: |
+    Rédige une lettre en utilisant :
+      - {job_offer} (texte brut)
+      - {analysis} (JSON de analyze_offer)
+      - {rag_context} (objet construit via Qdrant)
+    Respecte structure fournis par {rag_context}.
+  expected_output: 'Lettre prête à envoyer, 4 paragraphes max.'
+  agent: letter_writer
+  context: [job_offer, analysis, rag_context]
 
 write_email:
   description: >
-    Rédige un email de motivation court à partir du contexte complet (offre, analyse, RAG).
+    Rédige un email de motivation court en utilisant :
+        - {job_offer} (texte brut)
+        - {analysis} (JSON de analyze_offer)
+        - {rag_context} (objet construit via Qdrant)
+    Respecte structure fournis par {rag_context}.
   expected_output: >
     Email professionnel de 6 à 8 lignes maximum.
   agent: email_writer
-  context:
-    - job_offer
-    - analysis
-    - rag_context
+  context: [job_offer, analysis, rag_context]
 
 write_linkedin:
   description: >
-    Rédige un message LinkedIn concis et percutant à partir du contexte complet.
+    Rédige un message LinkedIn concis et percutant en utilisant :
+      - {job_offer} (texte brut)
+      - {analysis} (JSON de analyze_offer)
+      - {rag_context} (objet construit via Qdrant)
   expected_output: >
     Message LinkedIn professionnel de 3 à 5 phrases maximum.
   agent: linkedin_writer
-  context:
-    - job_offer
-    - analysis
-    - rag_context
-
-write_letter:
-  description: >
-    Rédige une lettre de motivation complète en respectant le RULESET: LETTER.
-  expected_output: >
-    Lettre de motivation professionnelle en 4 paragraphes maximum, prête à envoyer.
-  agent: letter_writer
-  context:
-    - job_offer
-    - analysis
-    - rag_context
+  context: [job_offer, analysis, rag_context]

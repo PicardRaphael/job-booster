@@ -104,9 +104,7 @@ class CrewAIAnalyzerAdapter(IAnalyzerService):
 
         # Créer la task
         task = Task(
-            description=self.task_config.get("description", "Analyze job offer").format(
-                job_offer=job_offer.text
-            ),
+            description=self.task_config.get("description", "Analyze job offer"),
             expected_output=self.task_config.get("expected_output", "Analysis"),
             agent=analyzer_agent,
         )

@@ -18,7 +18,7 @@ agents:
     top_p: 0.85 # Suffisant pour cohérence lexicale
     frequency_penalty: 0.4 # Évite répétitions sur les mêmes termes (stack, missions)
     presence_penalty: 0.2 # Laisse peu d’innovation, focus sur structure
-    max_tokens: 600
+    max_tokens: 1500
 
   # Email Writer - Rédaction d'emails de candidature
   email_writer:
@@ -28,7 +28,7 @@ agents:
     top_p: 0.9 # Un peu de diversité dans la formulation
     frequency_penalty: 0.4 # Évite répétitions (« React », « IA »)
     presence_penalty: 0.3 # Encourage une reformulation légère
-    max_tokens: 450
+    max_tokens: 700
 
   # LinkedIn Writer - Messages LinkedIn personnalisés
   linkedin_writer:
@@ -57,7 +57,7 @@ default:
   top_p: 0.9 # Un peu de diversité dans la formulation
   frequency_penalty: 0.4 # Évite répétitions (« React », « IA »)
   presence_penalty: 0.3 # Encourage une reformulation légère
-  max_tokens: 450
+  max_tokens: 700
 #
 # temperature: 0.0-2.0
 #   - 0.0-0.3: Déterministe, factuel (extraction, analyse)

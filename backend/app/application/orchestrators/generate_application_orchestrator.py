@@ -155,8 +155,8 @@ class GenerateApplicationOrchestrator:
         search_query = self._build_search_query_from_analysis(analysis_dto, command.content_type)
         search_command = SearchDocumentsCommand(
             query=search_query,
-            limit=10,  # Top 10 de Qdrant
-            score_threshold=0.5,  # Minimum 50% similarité
+            limit=25,  # Top 10 de Qdrant
+            score_threshold=0.3,  # Minimum 50% similarité
         )
         documents_dto = await self.search_use_case.execute(search_command)
         logger.info(
@@ -175,7 +175,7 @@ class GenerateApplicationOrchestrator:
         rerank_command = RerankDocumentsCommand(
             query=search_query,
             documents=documents_dto,
-            top_k=5,  # Top 5 après reranking
+            top_k=10,  # Top 5 après reranking
         )
         reranked_documents_dto = await self.rerank_use_case.execute(rerank_command)
         logger.info(

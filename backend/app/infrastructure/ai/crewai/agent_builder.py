@@ -63,6 +63,11 @@ class AgentBuilder:
         self._memory: bool = True  # Remember past interactions?
         self._config: Dict[str, Any] = {}  # Additional config
 
+        # === Custom Templates (for advanced prompt control) ===
+        self._system_template: Optional[str] = None  # Custom system template
+        self._prompt_template: Optional[str] = None  # Custom prompt template
+        self._response_template: Optional[str] = None  # Custom response template
+
     def with_role(self, role: str) -> "AgentBuilder":
         """
         Set agent role/title.
@@ -147,6 +152,12 @@ class AgentBuilder:
         self._allow_delegation = config.get("allow_delegation", self._allow_delegation)
         self._verbose = config.get("verbose", self._verbose)
         self._memory = config.get("memory", self._memory)
+
+        # Load custom templates if present
+        self._system_template = config.get("system_template", self._system_template)
+        self._prompt_template = config.get("prompt_template", self._prompt_template)
+        self._response_template = config.get("response_template", self._response_template)
+
         return self
 
     def build(self) -> Agent:
@@ -168,17 +179,28 @@ class AgentBuilder:
 
         logger.info("building_agent", role=self._role)
 
-        agent = Agent(
-            role=self._role,
-            goal=self._goal,
-            backstory=self._backstory or "Expert in their field",
-            llm=self._llm,
-            allow_delegation=self._allow_delegation,
-            verbose=self._verbose,
-            memory=self._memory,
-        )
+        # Build agent with custom templates if provided
+        agent_params = {
+            "role": self._role,
+            "goal": self._goal,
+            "backstory": self._backstory or "Expert in their field",
+            "llm": self._llm,
+            "allow_delegation": self._allow_delegation,
+            "verbose": self._verbose,
+            "memory": self._memory,
+        }
 
-        logger.info("agent_built", role=self._role)
+        # Add custom templates only if they are set
+        if self._system_template:
+            agent_params["system_template"] = self._system_template
+        if self._prompt_template:
+            agent_params["prompt_template"] = self._prompt_template
+        if self._response_template:
+            agent_params["response_template"] = self._response_template
+
+        agent = Agent(**agent_params)
+
+        logger.info("agent_built", role=self._role, has_custom_templates=bool(self._prompt_template))
         return agent
 
     def reset(self) -> "AgentBuilder":

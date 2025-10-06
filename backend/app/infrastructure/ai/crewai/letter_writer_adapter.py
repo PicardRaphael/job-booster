@@ -62,17 +62,6 @@ class LetterWriterAdapter(ILetterWriter):
     ) -> str:
         """Génère une lettre de motivation avec CrewAI."""
         logger.info("writing_cover_letter_with_crewai")
-        # 1. Construire le prompt final avec le contenu réel
-        prompt = self.agent_config.get("prompt_template", "")
-        prompt = (
-            prompt.replace("{{job_offer}}", job_offer.text.strip())
-            .replace("{{analysis}}", analysis.summary.strip())
-            .replace("{{rag_context}}", context.strip() if context else "")
-        )
-
-        # 2. Injecter ce prompt dans la config avant construction de l’agent
-        agent_config = self.agent_config.copy()
-        agent_config["prompt_template"] = prompt
 
         # Créer l'agent
         llm = self.llm_provider.create_llm("letter_writer")
@@ -99,10 +88,41 @@ class LetterWriterAdapter(ILetterWriter):
             .build()
         )
 
-        # 5. Debug : log du prompt rendu
-        logger.info("Rendered prompt (first 800 chars):\n" + prompt[:800])
+        # Passer les inputs au runtime avec analyse complète structurée
+        analysis_parts = [
+            f"ENTREPRISE: {analysis.company or 'Non spécifiée'}",
+            f"POSTE: {analysis.position}",
+            f"SECTEUR: {analysis.sector or 'Non spécifié'}",
+            "",
+            f"RÉSUMÉ: {analysis.summary}",
+        ]
 
-        result = crew.kickoff()
+        if analysis.missions:
+            analysis_parts.append(f"\nMISSIONS: {', '.join(analysis.missions[:5])}")
+
+        if analysis.key_skills:
+            analysis_parts.append(f"\nCOMPÉTENCES TECHNIQUES: {', '.join(analysis.key_skills[:8])}")
+
+        if analysis.soft_skills:
+            analysis_parts.append(f"\nSOFT SKILLS: {', '.join(analysis.soft_skills[:5])}")
+
+        if analysis.values:
+            analysis_parts.append(f"\nVALEURS ENTREPRISE: {', '.join(analysis.values[:4])}")
+
+        if analysis.tone:
+            analysis_parts.append(f"\nTON RECRUTEUR: {analysis.tone}")
+
+        analysis_text = "\n".join(analysis_parts)
+
+        inputs = {
+            "job_offer": job_offer.text,
+            "analysis": analysis_text,
+            "rag_context": context,
+        }
+
+        logger.info("letter_rag_context_length", length=len(context))
+
+        result = crew.kickoff(inputs=inputs)
         letter_content = str(result)
 
         logger.info("cover_letter_written", length=len(letter_content))
