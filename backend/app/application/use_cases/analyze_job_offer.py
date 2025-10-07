@@ -46,7 +46,6 @@ class AnalyzeJobOfferUseCase:
         """
         self.analyzer_service = analyzer_service
 
-    @trace_span("AnalyzeJobOfferUseCase")
     def execute(self, command: AnalyzeJobOfferCommand) -> JobAnalysisDTO:
         """
         Exécute l'analyse de l'offre.

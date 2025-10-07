@@ -51,7 +51,6 @@ class GenerateCoverLetterUseCase:
         """
         self.letter_writer = letter_writer
 
-    @trace_span("GenerateCoverLetterUseCase")
     def execute(self, command: GenerateContentCommand) -> str:
         """
         Génère une lettre de motivation.

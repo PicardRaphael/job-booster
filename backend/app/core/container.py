@@ -7,6 +7,7 @@ Container qui wire toutes les dépendances selon le Dependency Inversion Princip
 Gère tous les services, use cases et orchestrateurs de l'application.
 """
 
+import os
 from typing import Optional
 
 from app.core.llm_factory import LLMFactory
@@ -32,7 +33,7 @@ from app.infrastructure.ai.crewai import (
 from app.infrastructure.ai.crewai_analyzer_adapter import CrewAIAnalyzerAdapter
 from app.infrastructure.config import YAMLConfigurationLoader
 from app.infrastructure.vector_db import MultilingualEmbeddingAdapter, QdrantAdapter
-from app.infrastructure.observability.langfuse_adapter import LangfuseAdapter
+from app.infrastructure.observability import LangfuseAdapter, NoOpObservabilityAdapter
 
 # Legacy services
 from app.services.qdrant_service import get_qdrant_service
@@ -142,9 +143,12 @@ class Container:
         return self._document_repository
 
     def observability_service(self) -> IObservabilityService:
-        """Get observability service (direct Langfuse)."""
+        """Get observability service."""
         if self._observability_service is None:
-            self._observability_service = LangfuseAdapter()
+            if os.getenv("ENABLE_LANGFUSE", "false").lower() == "true":
+                self._observability_service = LangfuseAdapter()
+            else:
+                self._observability_service = NoOpObservabilityAdapter()
         return self._observability_service
 
     # === Domain Services ===

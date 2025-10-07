@@ -48,7 +48,6 @@ class SearchDocumentsUseCase:
         """
         self.document_repository = document_repository
 
-    @trace_span("SearchDocumentsUseCase")
     async def execute(self, command: SearchDocumentsCommand) -> List[DocumentDTO]:
         """
         Exécute la recherche de documents (async).

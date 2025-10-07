@@ -4,7 +4,7 @@ Generate Application Orchestrator.
 Application Layer - Clean Architecture
 
 Orchestrateur qui compose tous les use cases pour générer une candidature complète.
-Responsabilité: Coordonner le workflow, pas faire la logique métier.
+Responsabilité : Coordonner le workflow, pas faire la logique métier.
 """
 
 from app.application.commands import (
@@ -26,25 +26,21 @@ from app.application.use_cases import (
 from app.core.logging import get_logger
 from app.domain.exceptions import NoDatabaseDocumentsError
 from app.domain.services.observability_service import IObservabilityService
-from app.services.langfuse_service import get_langfuse_service
 
 logger = get_logger(__name__)
 
 
 class GenerateApplicationOrchestrator:
     """
-    Orchestrateur: Génération complète de candidature.
+    Orchestrateur : Génération complète de candidature.
 
-    Responsabilité (SRP):
-    - Coordonner les use cases (workflow)
-    - Une seule raison de changer: si le workflow change
-
-    Flow orchestré:
-    1. Analyser l'offre d'emploi
-    2. Chercher documents RAG
-    3. Reranker documents
-    4. Générer contenu
-    5. Envoyer traces observabilité
+    Flow :
+    1. Crée la trace principale (Langfuse)
+    2. Analyse l’offre d’emploi
+    3. Recherche contextuelle (RAG)
+    4. Rerank des documents
+    5. Génération du contenu final
+    6. Flush asynchrone de l’observabilité
     """
 
     def __init__(
@@ -75,101 +71,85 @@ class GenerateApplicationOrchestrator:
             offer_length=len(command.job_offer.text),
         )
 
-        # === ÉTAPE 1: Créer trace principale (optionnel) ===
+        # === ÉTAPE 1: Créer la trace principale ===
         try:
             trace = self.observability_service.create_trace(
-                name=f"{command.content_type}_generation",
+                name=f"generate_{command.content_type}_workflow",
                 input_data={
                     "content_type": command.content_type,
-                    "job_offer": command.job_offer.text[:500],  # limite de log
+                    "offer_excerpt": command.job_offer.text[:300],
                 },
             )
-            logger.info("orchestrator_trace_created", trace_id=getattr(trace, "id", "noop") if trace else "noop")
+            main_span = self.observability_service.create_span(trace, "full_workflow")
+            logger.info("orchestrator_trace_created", trace_id=getattr(trace, "id", "noop"))
         except Exception as e:
             logger.warning("orchestrator_trace_failed", error=str(e))
             trace = None
+            main_span = None
 
-        # === ÉTAPE 2: Analyse de l'offre ===
-        analyze_command = AnalyzeJobOfferCommand(
-            job_offer=command.job_offer,
-            trace_context=None,  # plus utilisé
-            content_type=command.content_type,
-        )
-        analysis_dto = self.analyze_use_case.execute(analyze_command)
-        logger.info(
-            "orchestrator_analysis_completed",
-            position=getattr(analysis_dto, "position", None),
-            skills_count=len(getattr(analysis_dto, "key_skills", [])),
-        )
-
-        # === ÉTAPE 3: Recherche contextuelle (RAG) ===
-        search_query = self._build_search_query_from_analysis(analysis_dto, command.content_type)
-        search_command = SearchDocumentsCommand(
-            query=search_query,
-            limit=25,
-            score_threshold=0.3,
-        )
-        documents_dto = await self.search_use_case.execute(search_command)
-        logger.info("orchestrator_search_completed", documents_found=len(documents_dto))
-
-        if not documents_dto:
-            logger.error("orchestrator_no_documents_found")
-            raise NoDatabaseDocumentsError(
-                "Aucune donnée utilisateur trouvée. Veuillez ingérer vos documents."
+        try:
+            # === ÉTAPE 2: Analyse de l’offre ===
+            analyze_command = AnalyzeJobOfferCommand(
+                job_offer=command.job_offer,
+                trace_context=trace,
+                content_type=command.content_type,
+            )
+            analysis_dto = self.analyze_use_case.execute(analyze_command)
+            logger.info(
+                "orchestrator_analysis_completed",
+                position=getattr(analysis_dto, "position", None),
+                skills_count=len(getattr(analysis_dto, "key_skills", [])),
             )
 
-        # === ÉTAPE 4: Reranker les documents ===
-        rerank_command = RerankDocumentsCommand(
-            query=search_query,
-            documents=documents_dto,
-            top_k=10,
-        )
-        reranked_documents_dto = await self.rerank_use_case.execute(rerank_command)
-        logger.info(
-            "orchestrator_rerank_completed",
-            documents_reranked=len(reranked_documents_dto),
-        )
+            # === ÉTAPE 3: Recherche contextuelle (RAG) ===
+            search_query = self._build_search_query_from_analysis(analysis_dto, command.content_type)
+            search_command = SearchDocumentsCommand(query=search_query, limit=25, score_threshold=0.3)
+            documents_dto = await self.search_use_case.execute(search_command)
+            logger.info("orchestrator_search_completed", documents_found=len(documents_dto))
 
-        # === ÉTAPE 5: Génération du contenu final ===
-        writer_use_case = self.writer_use_cases.get(command.content_type)
-        if not writer_use_case:
-            raise ValueError(
-                f"Content type invalide: {command.content_type}. "
-                f"Valeurs acceptées: email, linkedin, letter"
+            if not documents_dto:
+                raise NoDatabaseDocumentsError("Aucun document utilisateur trouvé dans Qdrant.")
+
+            # === ÉTAPE 4: Rerank des documents ===
+            rerank_command = RerankDocumentsCommand(query=search_query, documents=documents_dto, top_k=10)
+            reranked_documents_dto = await self.rerank_use_case.execute(rerank_command)
+            logger.info("orchestrator_rerank_completed", documents_reranked=len(reranked_documents_dto))
+
+            # === ÉTAPE 5: Génération du contenu final ===
+            writer_use_case = self.writer_use_cases.get(command.content_type)
+            if not writer_use_case:
+                raise ValueError(f"Type de contenu invalide: {command.content_type}")
+
+            generate_command = GenerateContentCommand(
+                job_offer=command.job_offer,
+                analysis=analysis_dto,
+                documents=reranked_documents_dto,
+                content_type=command.content_type,
             )
+            generated_content = writer_use_case.execute(generate_command)
+            logger.info("orchestrator_generation_completed", content_length=len(generated_content))
 
-        generate_command = GenerateContentCommand(
-            job_offer=command.job_offer,
-            analysis=analysis_dto,
-            documents=reranked_documents_dto,
-            content_type=command.content_type,
-        )
-        generated_content = writer_use_case.execute(generate_command)
-        logger.info(
-            "orchestrator_generation_completed",
-            content_length=len(generated_content),
-        )
+            # === Enregistre sortie dans la trace ===
+            if main_span:
+                main_span.output = {"content_length": len(generated_content)}
 
-        # === ÉTAPE 6: Flush observabilité ===
-        trace.output = {"content": generated_content}
-        trace.flush()
-        self.observability_service.flush()
+        except Exception as e:
+            if main_span:
+                main_span.output = {"error": str(e)}
+            raise e
 
-        # === ÉTAPE 7: Retourner le résultat complet ===
-        result = GenerationResultDTO(
+        finally:
+            # === Flush non bloquant de Langfuse ===
+            if self.observability_service:
+                self.observability_service.flush(async_flush=True)
+
+        # === ÉTAPE 6: Retourner le résultat complet ===
+        return GenerationResultDTO(
             content=generated_content,
             content_type=command.content_type,
             sources=reranked_documents_dto,
             trace_id=getattr(trace, "id", "unknown"),
         )
-
-        logger.info(
-            "orchestrator_completed",
-            content_type=command.content_type,
-            trace_id=getattr(trace, "id", "unknown"),
-        )
-
-        return result
 
     def _build_search_query_from_analysis(self, analysis_dto, content_type: str) -> str:
         poste = next((

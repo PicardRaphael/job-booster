@@ -50,7 +50,6 @@ class GenerateEmailUseCase:
         """
         self.email_writer = email_writer
 
-    @trace_span("GenerateEmailUseCase")
     def execute(self, command: GenerateContentCommand) -> str:
         """
         Génère un email de motivation.

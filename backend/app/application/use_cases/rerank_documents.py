@@ -54,7 +54,6 @@ class RerankDocumentsUseCase:
         """
         self.reranker_service = reranker_service
 
-    @trace_span("RerankDocumentsUseCase")
     async def execute(self, command: RerankDocumentsCommand) -> List[DocumentDTO]:
         """
         Exécute le reranking des documents (async).

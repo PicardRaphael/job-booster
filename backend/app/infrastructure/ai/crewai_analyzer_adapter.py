@@ -6,7 +6,6 @@ Infrastructure Layer - Clean Architecture
 Adapter pour analyser les offres d'emploi avec CrewAI.
 Implémente IAnalyzerService du domain.
 """
-
 import json
 from typing import Any, Dict
 
@@ -18,11 +17,9 @@ from app.domain.entities.job_offer import JobOffer
 from app.domain.repositories.llm_provider import ILLMProvider
 from app.domain.services.analyzer_service import IAnalyzerService
 from app.infrastructure.ai.crewai import AgentBuilder, CrewBuilder
-from app.infrastructure.observability.langfuse_autotrace import autotrace_methods
 
 logger = get_logger(__name__)
 
-@autotrace_methods
 class CrewAIAnalyzerAdapter(IAnalyzerService):
     """
     Adapter CrewAI pour analyse d'offres d'emploi.

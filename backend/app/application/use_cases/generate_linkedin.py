@@ -50,7 +50,6 @@ class GenerateLinkedInUseCase:
         """
         self.linkedin_writer = linkedin_writer
 
-    @trace_span("GenerateLinkedInUseCase")
     def execute(self, command: GenerateContentCommand) -> str:
         """
         Génère un message privé LinkedIn de motivation.
