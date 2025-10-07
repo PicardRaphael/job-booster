@@ -20,6 +20,7 @@ Le refactoring complet de JobBooster backend a été réalisé avec succès selo
 ## 🏗️ Architecture Finale
 
 ### Avant (Problèmes)
+
 ```
 ❌ Use case monolithique (6 responsabilités)
 ❌ Adapters chargeant les configs YAML
@@ -30,6 +31,7 @@ Le refactoring complet de JobBooster backend a été réalisé avec succès selo
 ```
 
 ### Après (Clean Architecture)
+
 ```
 ┌─────────────────────────────────────────────┐
 │           Presentation (API)                │
@@ -65,12 +67,14 @@ Le refactoring complet de JobBooster backend a été réalisé avec succès selo
 ## ✅ SOLID Principles - Tous Respectés
 
 ### S - Single Responsibility Principle
+
 - ✅ Chaque use case = 1 seule responsabilité
 - ✅ YAMLConfigurationLoader extrait pour I/O uniquement
 - ✅ Adapters ne chargent plus les configs
 - ✅ API ne fait plus de logique métier
 
 **Exemple** :
+
 ```python
 # ❌ Avant: Use case monolithique (6 responsabilités)
 class GenerateApplicationContentUseCase:
@@ -87,17 +91,16 @@ class AnalyzeJobOfferUseCase:
     def execute(...):
         # 1 seule responsabilité: analyser offre
 
-class TraceGenerationUseCase:
-    def execute(...):
-        # 1 seule responsabilité: créer trace
 ```
 
 ### O - Open/Closed Principle
+
 - ✅ Interfaces partout (IEmailWriter, ILinkedInWriter, etc.)
 - ✅ Facile d'ajouter un nouveau writer sans toucher au code existant
 - ✅ Nouveau provider LLM = juste ajouter méthode factory
 
 **Exemple** :
+
 ```python
 # ✅ Pour ajouter génération de tweet (pas besoin de modifier existant)
 # 1. Domain: Créer ITweetWriter interface
@@ -108,11 +111,13 @@ class TraceGenerationUseCase:
 ```
 
 ### L - Liskov Substitution Principle
+
 - ✅ Tous les adapters respectent leurs interfaces
 - ✅ On peut remplacer CrewAI par Autogen sans changer le domain
 - ✅ NoOpObservabilityAdapter substituable à LangfuseAdapter
 
 **Exemple** :
+
 ```python
 # ✅ Substitution parfaite
 def process(service: IAnalyzerService):
@@ -120,11 +125,13 @@ def process(service: IAnalyzerService):
 ```
 
 ### I - Interface Segregation Principle
+
 - ✅ `IWriterService` séparé en 3 interfaces spécifiques
 - ✅ Chaque use case dépend uniquement de ce dont il a besoin
 - ✅ Pas de méthodes inutilisées
 
 **Exemple** :
+
 ```python
 # ❌ Avant: Interface monolithique
 class IWriterService(ABC):
@@ -142,11 +149,13 @@ class GenerateEmailUseCase:
 ```
 
 ### D - Dependency Inversion Principle
+
 - ✅ Container injecte des **interfaces**, pas des implémentations
 - ✅ Domain ne dépend d'aucune librairie externe
 - ✅ Application dépend du Domain (pas de l'Infrastructure)
 
 **Exemple** :
+
 ```python
 # ✅ DIP respecté
 class AnalyzeJobOfferUseCase:
@@ -164,6 +173,7 @@ use_case = AnalyzeJobOfferUseCase(
 ## 🔄 Flow Complet de Génération
 
 ### Avant (Monolithique - 116 lignes dans API)
+
 ```
 API Endpoint (116 lignes)
    ├─→ Créer trace Langfuse directement
@@ -172,13 +182,13 @@ API Endpoint (116 lignes)
 ```
 
 ### Après (Clean Architecture - 4 lignes dans API)
+
 ```
 1. API reçoit HTTP Request
    ↓
 2. GenerationMapper.request_to_command(request)
    ↓
 3. Orchestrator.execute(command)
-   ├─→ TraceGenerationUseCase
    ├─→ AnalyzeJobOfferUseCase
    ├─→ SearchDocumentsUseCase
    ├─→ RerankDocumentsUseCase
@@ -190,6 +200,7 @@ API Endpoint (116 lignes)
 ```
 
 **Code API (ultra-simple) :**
+
 ```python
 @router.post("", response_model=GenerateResponse)
 async def generate_content(request: GenerateRequest) -> GenerateResponse:
@@ -205,6 +216,7 @@ async def generate_content(request: GenerateRequest) -> GenerateResponse:
 ## 📂 Fichiers Créés (34 fichiers)
 
 ### Domain Layer (4 fichiers)
+
 1. ✅ `domain/exceptions.py` - Exceptions métier
 2. ✅ `domain/repositories/embedding_service.py` - IEmbeddingService
 3. ✅ `domain/services/observability_service.py` - IObservabilityService
@@ -213,6 +225,7 @@ async def generate_content(request: GenerateRequest) -> GenerateResponse:
 ### Application Layer (18 fichiers)
 
 #### DTOs (5 fichiers)
+
 5. ✅ `application/dtos/job_offer_dto.py`
 6. ✅ `application/dtos/job_analysis_dto.py`
 7. ✅ `application/dtos/document_dto.py`
@@ -220,6 +233,7 @@ async def generate_content(request: GenerateRequest) -> GenerateResponse:
 9. ✅ `application/dtos/trace_context_dto.py`
 
 #### Commands (5 fichiers)
+
 10. ✅ `application/commands/analyze_job_offer_command.py`
 11. ✅ `application/commands/search_documents_command.py`
 12. ✅ `application/commands/rerank_documents_command.py`
@@ -227,6 +241,7 @@ async def generate_content(request: GenerateRequest) -> GenerateResponse:
 14. ✅ `application/commands/generate_application_command.py`
 
 #### Use Cases (7 fichiers)
+
 15. ✅ `application/use_cases/analyze_job_offer.py`
 16. ✅ `application/use_cases/search_documents.py`
 17. ✅ `application/use_cases/rerank_documents.py`
@@ -236,31 +251,38 @@ async def generate_content(request: GenerateRequest) -> GenerateResponse:
 21. ✅ `application/use_cases/trace_generation.py`
 
 #### Orchestrators (1 fichier)
+
 22. ✅ `application/orchestrators/generate_application_orchestrator.py`
 
 ### Infrastructure Layer (10 fichiers)
 
 #### Config (1 fichier)
+
 23. ✅ `infrastructure/config/yaml_config_loader.py`
 
 #### Vector DB (1 fichier)
+
 24. ✅ `infrastructure/vector_db/embedding_adapter.py`
 
 #### Observability (2 fichiers)
+
 25. ✅ `infrastructure/observability/langfuse_adapter.py`
 26. ✅ `infrastructure/observability/noop_adapter.py`
 
 #### CrewAI Writers (4 fichiers)
+
 27. ✅ `infrastructure/ai/crewai/email_writer_adapter.py`
 28. ✅ `infrastructure/ai/crewai/linkedin_writer_adapter.py`
 29. ✅ `infrastructure/ai/crewai/letter_writer_adapter.py`
 30. ✅ `infrastructure/ai/crewai/content_writer_service.py`
 
 #### Builders (2 fichiers déplacés)
+
 31. ✅ `infrastructure/ai/crewai/agent_builder.py` (déplacé depuis application/)
 32. ✅ `infrastructure/ai/crewai/crew_builder.py` (déplacé depuis application/)
 
 ### API Layer (2 fichiers)
+
 33. ✅ `api/mappers/generation_mapper.py`
 34. ✅ `api/mappers/__init__.py`
 
@@ -306,12 +328,14 @@ get_email_writer()             # Récupère le writer d'emails
 ### Commentaires Pédagogiques
 
 **Chaque fichier contient** :
+
 - **Module docstring** : Couche + responsabilité + pourquoi
 - **Class docstring** : Rôle + pattern utilisé + exemple
 - **Method docstrings** : Args, Returns, Raises, Examples
 - **Inline comments** : Expliquent le "pourquoi", pas le "quoi"
 
 **Exemple** :
+
 ```python
 """
 YAML Configuration Loader.
@@ -355,18 +379,18 @@ class YAMLConfigurationLoader:
 
 ## 🎓 Patterns Utilisés
 
-| Pattern | Localisation | Pourquoi |
-|---------|-------------|----------|
-| **Clean Architecture** | Global | Séparation des couches |
-| **Hexagonal Architecture** | Domain ↔ Infrastructure | Ports & Adapters |
-| **CQRS** | Application | Commands séparés |
-| **Builder** | Infrastructure | Créer agents/crews |
-| **Factory** | Core | Créer LLMs |
-| **Adapter** | Infrastructure | Wrapper services externes |
-| **Composite** | Infrastructure | ContentWriterService |
-| **Singleton** | Core | Container |
-| **Mapper** | API | Request/Response ↔ DTOs |
-| **Orchestrator** | Application | Composer use cases |
+| Pattern                    | Localisation            | Pourquoi                  |
+| -------------------------- | ----------------------- | ------------------------- |
+| **Clean Architecture**     | Global                  | Séparation des couches    |
+| **Hexagonal Architecture** | Domain ↔ Infrastructure | Ports & Adapters          |
+| **CQRS**                   | Application             | Commands séparés          |
+| **Builder**                | Infrastructure          | Créer agents/crews        |
+| **Factory**                | Core                    | Créer LLMs                |
+| **Adapter**                | Infrastructure          | Wrapper services externes |
+| **Composite**              | Infrastructure          | ContentWriterService      |
+| **Singleton**              | Core                    | Container                 |
+| **Mapper**                 | API                     | Request/Response ↔ DTOs   |
+| **Orchestrator**           | Application             | Composer use cases        |
 
 ---
 
@@ -375,23 +399,27 @@ class YAMLConfigurationLoader:
 ### Comment Comprendre le Code (Ordre de Lecture)
 
 #### 1. **Commence par le Domain** (`domain/`)
+
 - 📖 Lis les entities : `job_offer.py`, `job_analysis.py`
 - 📖 Lis les interfaces : `analyzer_service.py`, `writer_service.py`
 - 📖 Comprends les exceptions : `exceptions.py`
 
 #### 2. **Ensuite l'Application** (`application/`)
+
 - 📖 Lis les DTOs : simple transfert de data
 - 📖 Lis les Commands : représentent une intention
 - 📖 Lis 1 use case simple : `analyze_job_offer.py`
 - 📖 Lis l'orchestrateur : `generate_application_orchestrator.py`
 
 #### 3. **Puis l'Infrastructure** (`infrastructure/`)
+
 - 📖 Lis le config loader : `yaml_config_loader.py`
 - 📖 Lis 1 adapter : `email_writer_adapter.py`
 - 📖 Comprends comment il implémente l'interface
 - 📖 Vois comment CrewAI est utilisé
 
 #### 4. **Enfin l'API** (`api/`)
+
 - 📖 Lis le mapper : `generation_mapper.py`
 - 📖 Lis l'endpoint : `generation.py` (4 lignes claires)
 
@@ -400,6 +428,7 @@ class YAMLConfigurationLoader:
 **Exemple** : Ajouter génération de tweet
 
 1. **Domain** : Créer `ITweetWriter` interface
+
    ```python
    class ITweetWriter(ABC):
        @abstractmethod
@@ -408,6 +437,7 @@ class YAMLConfigurationLoader:
    ```
 
 2. **Application** : Créer `GenerateTweetUseCase`
+
    ```python
    class GenerateTweetUseCase:
        def __init__(self, writer: ITweetWriter):
@@ -418,6 +448,7 @@ class YAMLConfigurationLoader:
    ```
 
 3. **Infrastructure** : Créer `TweetWriterAdapter`
+
    ```python
    class TweetWriterAdapter(ITweetWriter):
        def write_tweet(self, offer: JobOffer, analysis: JobAnalysis, context: str) -> str:
@@ -425,6 +456,7 @@ class YAMLConfigurationLoader:
    ```
 
 4. **Container** : Wire le nouveau use case
+
    ```python
    def tweet_use_case(self) -> GenerateTweetUseCase:
        if self._tweet_use_case is None:
@@ -442,6 +474,7 @@ class YAMLConfigurationLoader:
 ### 1. Use Case Monolithique → 7 Use Cases Atomiques
 
 **Avant** :
+
 ```python
 class GenerateApplicationContentUseCase:
     def execute(...):
@@ -450,6 +483,7 @@ class GenerateApplicationContentUseCase:
 ```
 
 **Après** :
+
 ```python
 # 7 use cases atomiques (20-50 lignes chacun)
 - AnalyzeJobOfferUseCase
@@ -458,7 +492,6 @@ class GenerateApplicationContentUseCase:
 - GenerateEmailUseCase
 - GenerateLinkedInUseCase
 - GenerateCoverLetterUseCase
-- TraceGenerationUseCase
 
 # 1 orchestrateur pour composer
 - GenerateApplicationOrchestrator
@@ -467,6 +500,7 @@ class GenerateApplicationContentUseCase:
 ### 2. LLMFactory (Core) - Suppression I/O
 
 **Avant** :
+
 ```python
 class LLMFactory:
     def __init__(self):
@@ -476,6 +510,7 @@ class LLMFactory:
 ```
 
 **Après** :
+
 ```python
 class LLMFactory:
     def __init__(self, llm_config: Dict[str, Any]):
@@ -486,6 +521,7 @@ class LLMFactory:
 ### 3. Adapters (Infrastructure) - Injection Config
 
 **Avant** :
+
 ```python
 class CrewAIAnalyzerAdapter:
     def __init__(self, llm_provider):
@@ -494,6 +530,7 @@ class CrewAIAnalyzerAdapter:
 ```
 
 **Après** :
+
 ```python
 class CrewAIAnalyzerAdapter:
     def __init__(self, llm_provider, agent_config, task_config):
@@ -505,6 +542,7 @@ class CrewAIAnalyzerAdapter:
 ### 4. API Endpoint (Presentation) - Pur Adapter HTTP
 
 **Avant** (116 lignes) :
+
 ```python
 @router.post("")
 async def generate_content(request: GenerateRequest):
@@ -523,6 +561,7 @@ async def generate_content(request: GenerateRequest):
 ```
 
 **Après** (4 lignes logiques) :
+
 ```python
 @router.post("")
 async def generate_content(request: GenerateRequest):
@@ -536,6 +575,7 @@ async def generate_content(request: GenerateRequest):
 ### 5. Writer Interface - ISP
 
 **Avant** :
+
 ```python
 class IWriterService(ABC):
     # ❌ Interface monolithique
@@ -545,6 +585,7 @@ class IWriterService(ABC):
 ```
 
 **Après** :
+
 ```python
 # ✅ 3 interfaces séparées (ISP)
 class IEmailWriter(ABC):
@@ -568,6 +609,7 @@ class IContentWriterService(ABC):
 ## ✅ Checklist Validation SOLID & Clean Architecture
 
 ### SOLID
+
 - [x] **SRP** : Chaque classe a 1 responsabilité
 - [x] **OCP** : Extensible via interfaces
 - [x] **LSP** : Adapters substituables
@@ -575,6 +617,7 @@ class IContentWriterService(ABC):
 - [x] **DIP** : Dépendances vers abstractions
 
 ### Clean Architecture
+
 - [x] **Domain indépendant** : Aucune dépendance externe
 - [x] **Application dépend du Domain** : Use cases utilisent interfaces
 - [x] **Infrastructure dépend du Domain** : Adapters implémentent interfaces
@@ -597,6 +640,7 @@ Le refactoring est **complet et production-ready**. Le code est :
 - ✅ **Clean** : Architecture en couches claire
 
 **Tu peux donner ce code à un débutant** et il comprendra l'architecture en lisant les fichiers dans l'ordre :
+
 1. Domain (entités + interfaces)
 2. Application (use cases)
 3. Infrastructure (adapters)
@@ -612,6 +656,6 @@ Le refactoring est **complet et production-ready**. Le code est :
 
 ---
 
-*Refactoring réalisé selon Clean Architecture et SOLID*
-*Code documenté de manière pédagogique*
-*Architecture enterprise-grade pour débutants* 🎯
+_Refactoring réalisé selon Clean Architecture et SOLID_
+_Code documenté de manière pédagogique_
+_Architecture enterprise-grade pour débutants_ 🎯

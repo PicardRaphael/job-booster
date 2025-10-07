@@ -13,6 +13,8 @@ from app.application.commands import SearchDocumentsCommand
 from app.application.dtos import DocumentDTO
 from app.core.logging import get_logger
 from app.domain.repositories.document_repository import IDocumentRepository
+from app.infrastructure.observability.langfuse_decorator import trace_span
+
 
 logger = get_logger(__name__)
 
@@ -46,6 +48,7 @@ class SearchDocumentsUseCase:
         """
         self.document_repository = document_repository
 
+    @trace_span("SearchDocumentsUseCase")
     async def execute(self, command: SearchDocumentsCommand) -> List[DocumentDTO]:
         """
         Exécute la recherche de documents (async).

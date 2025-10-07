@@ -17,7 +17,6 @@ Use Cases Atomiques:
 - GenerateEmailUseCase: Générer un email
 - GenerateLinkedInUseCase: Générer un message privé LinkedIn
 - GenerateCoverLetterUseCase: Générer une lettre
-- TraceGenerationUseCase: Créer trace observability
 
 Orchestrateurs:
 - GenerateApplicationOrchestrator: Compose tous les use cases
@@ -30,7 +29,6 @@ from app.application.use_cases.generate_email import GenerateEmailUseCase
 from app.application.use_cases.generate_linkedin import GenerateLinkedInUseCase
 from app.application.use_cases.rerank_documents import RerankDocumentsUseCase
 from app.application.use_cases.search_documents import SearchDocumentsUseCase
-from app.application.use_cases.trace_generation import TraceGenerationUseCase
 
 __all__ = [
     "AnalyzeJobOfferUseCase",
@@ -39,5 +37,4 @@ __all__ = [
     "GenerateEmailUseCase",
     "GenerateLinkedInUseCase",
     "GenerateCoverLetterUseCase",
-    "TraceGenerationUseCase",
 ]

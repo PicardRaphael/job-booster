@@ -13,6 +13,8 @@ from app.application.commands import RerankDocumentsCommand
 from app.application.dtos import DocumentDTO
 from app.core.logging import get_logger
 from app.domain.services.reranker_service import IRerankerService
+from app.infrastructure.observability.langfuse_decorator import trace_span
+
 
 logger = get_logger(__name__)
 
@@ -52,6 +54,7 @@ class RerankDocumentsUseCase:
         """
         self.reranker_service = reranker_service
 
+    @trace_span("RerankDocumentsUseCase")
     async def execute(self, command: RerankDocumentsCommand) -> List[DocumentDTO]:
         """
         Exécute le reranking des documents (async).

@@ -5,6 +5,7 @@ API backend pour assister la génération de candidatures avec **FastAPI**, **Cr
 ## 📋 Vue d'Ensemble
 
 JobBooster génère du contenu personnalisé (emails, messages privés LinkedIn, lettres de motivation) à partir d'offres d'emploi en utilisant :
+
 - **RAG (Retrieval-Augmented Generation)** avec vos données personnelles
 - **Agents AI** via CrewAI
 - **Multi-provider LLM** (OpenAI, Google Gemini, Anthropic Claude)
@@ -78,7 +79,6 @@ app/
 2. GenerationMapper.request_to_command()
    ↓
 3. GenerateApplicationOrchestrator.execute()
-   ├─→ TraceGenerationUseCase (Langfuse)
    ├─→ AnalyzeJobOfferUseCase (Résumé offre)
    ├─→ SearchDocumentsUseCase (RAG Qdrant)
    ├─→ RerankDocumentsUseCase (Reranking)
@@ -183,6 +183,7 @@ AGENT_ANALYZER_TEMPERATURE=0.2
 Génère du contenu (email, LinkedIn, lettre).
 
 **Request :**
+
 ```json
 {
   "job_offer": "Nous recherchons un développeur Python...",
@@ -191,6 +192,7 @@ Génère du contenu (email, LinkedIn, lettre).
 ```
 
 **Response :**
+
 ```json
 {
   "output": "Bonjour,\n\nJe candidate pour...",
@@ -212,6 +214,7 @@ Génère du contenu (email, LinkedIn, lettre).
 Vérifie le statut de l'application.
 
 **Response :**
+
 ```json
 {
   "status": "healthy",
@@ -240,18 +243,18 @@ pytest --cov=app tests/
 
 ## 🎨 Design Patterns Utilisés
 
-| Pattern | Localisation | Pourquoi |
-|---------|-------------|----------|
-| **Clean Architecture** | Global | Séparation des couches |
-| **Hexagonal (Ports & Adapters)** | Domain ↔ Infrastructure | Découplage |
-| **CQRS** | Application | Commands pour intentions |
-| **Builder** | Infrastructure | AgentBuilder, CrewBuilder |
-| **Factory** | Core | LLMFactory (multi-provider) |
-| **Adapter** | Infrastructure | Wrapper services externes |
-| **Composite** | Infrastructure | ContentWriterService |
-| **Singleton** | Core | Container (DI) |
-| **Orchestrator** | Application | Composition de use cases |
-| **Mapper** | API | Request/Response ↔ DTOs |
+| Pattern                          | Localisation            | Pourquoi                    |
+| -------------------------------- | ----------------------- | --------------------------- |
+| **Clean Architecture**           | Global                  | Séparation des couches      |
+| **Hexagonal (Ports & Adapters)** | Domain ↔ Infrastructure | Découplage                  |
+| **CQRS**                         | Application             | Commands pour intentions    |
+| **Builder**                      | Infrastructure          | AgentBuilder, CrewBuilder   |
+| **Factory**                      | Core                    | LLMFactory (multi-provider) |
+| **Adapter**                      | Infrastructure          | Wrapper services externes   |
+| **Composite**                    | Infrastructure          | ContentWriterService        |
+| **Singleton**                    | Core                    | Container (DI)              |
+| **Orchestrator**                 | Application             | Composition de use cases    |
+| **Mapper**                       | API                     | Request/Response ↔ DTOs     |
 
 ## 🔑 Concepts Clés
 
@@ -265,7 +268,6 @@ Chaque use case a une **responsabilité unique** :
 - `GenerateEmailUseCase` - Génère un email
 - `GenerateLinkedInUseCase` - Génère un message privé LinkedIn
 - `GenerateCoverLetterUseCase` - Génère une lettre
-- `TraceGenerationUseCase` - Crée trace Langfuse
 
 ### Orchestrator
 
@@ -284,6 +286,7 @@ result = orchestrator.execute(command)
 ### DTOs (Data Transfer Objects)
 
 Découplent les couches :
+
 - API Request → DTO → Command
 - Use Case Result → DTO → API Response
 
@@ -362,6 +365,7 @@ Le code est conçu pour être **ultra-lisible** :
 ### Documentation
 
 Chaque fichier contient :
+
 - **Module docstring** : Couche + responsabilité + pourquoi
 - **Class docstring** : Rôle + pattern + exemple
 - **Method docstrings** : Args, Returns, Raises, Examples
@@ -384,6 +388,7 @@ Chaque fichier contient :
 ## 🌍 Observabilité
 
 Toutes les générations sont tracées dans **Langfuse** :
+
 - Trace ID retourné dans response
 - Metadata : job offer résumé, content type
 - Tokens et coûts trackés

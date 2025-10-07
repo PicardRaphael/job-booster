@@ -1,120 +1,49 @@
-"""
-Langfuse Observability Adapter.
-
-Infrastructure Layer - Clean Architecture
-
-Adapter pour intégrer Langfuse (service d'observabilité).
-Implémente IObservabilityService du domain.
-"""
-
-from typing import Any, Dict
-
-from app.core.logging import get_logger
-from app.domain.services.observability_service import (
-    IObservabilityService,
-    TraceContext,
-)
+from app.domain.interfaces.observability_service import IObservabilityService
 from app.services.langfuse_service import get_langfuse_service
-
-logger = get_logger(__name__)
 
 
 class LangfuseAdapter(IObservabilityService):
     """
-    Adapter Langfuse pour observabilité.
+    Adapter entre le domaine et le service concret Langfuse.
+    Implémente IObservabilityService.
 
-    Responsabilité (SRP):
-    - Wrapper le service Langfuse legacy
-    - Implémenter l'interface IObservabilityService
-    - Une seule raison de changer: si l'API Langfuse change
-
-    Pattern Adapter:
-    - Adapte le service Langfuse existant à l'interface domain
-    - Permet de changer de service d'observabilité facilement
-    - Isole le domain des détails d'implémentation Langfuse
-
-    Example:
-        >>> adapter = LangfuseAdapter()
-        >>> trace = adapter.create_trace(
-        ...     name="generation",
-        ...     metadata={"type": "email"}
-        ... )
-        >>> print(trace.trace_id)
-        "langfuse-abc123..."
+    Rôle :
+    - Centraliser toutes les interactions avec Langfuse.
+    - Maintenir la trace courante (`current_trace`) pour le décorateur @trace_span.
     """
 
     def __init__(self):
+        self._service = get_langfuse_service()
+        self.current_trace = None  # permet aux spans décorés de s'y rattacher
+
+    # === TRACES ===
+
+    def create_trace(self, name: str, input_data: dict, output_data: dict = None):
+        """Crée une trace Langfuse et la stocke en trace courante."""
+        trace = self._service.create_trace(name, input_data, output_data)
+        self.current_trace = trace
+        return trace
+
+    def log_trace(self, name: str, input_data: dict, output_data: dict = None):
+        """Alias de create_trace pour compatibilité avec orchestrateur."""
+        return self.create_trace(name, input_data, output_data)
+
+    # === SPANS ===
+
+    def create_span(
+        self, trace=None, name: str = None, input_data: dict = None, output_data: dict = None
+    ):
         """
-        Initialise l'adapter avec le service Langfuse.
-
-        Note:
-        On utilise get_langfuse_service() qui est un singleton.
-        Cela évite de créer plusieurs connexions Langfuse.
+        Crée un span rattaché à la trace courante (si définie),
+        sinon à la trace passée en argument.
         """
-        self.langfuse = get_langfuse_service()
-        logger.info("langfuse_adapter_initialized")
+        trace_ref = trace or self.current_trace
+        if not trace_ref:
+            raise RuntimeError("Aucune trace courante définie pour le span Langfuse.")
+        return self._service.create_span(trace_ref, name, input_data, output_data)
 
-    def create_trace(self, name: str, metadata: Dict[str, Any]) -> TraceContext:
-        """
-        Crée une trace Langfuse.
+    # === FLUSH ===
 
-        Args:
-            name: Nom de la trace (ex: "job_application_generation")
-            metadata: Métadonnées à associer
-                     Ex: {"content_type": "email", "user_id": "123"}
-
-        Returns:
-            TraceContext avec trace_id et metadata
-
-        Example:
-            >>> trace = adapter.create_trace(
-            ...     name="generation",
-            ...     metadata={"type": "email", "length": 500}
-            ... )
-            >>> print(trace.trace_id)
-            "langfuse-abc123-xyz789"
-        """
-        logger.info("creating_langfuse_trace", name=name)
-
-        # Appeler le service Langfuse legacy
-        langfuse_trace = self.langfuse.create_trace(name=name, metadata=metadata)
-
-        # Extraire trace_id
-        # Langfuse peut retourner différents formats, on gère les cas
-        if hasattr(langfuse_trace, "id"):
-            trace_id = str(langfuse_trace.id)
-        elif isinstance(langfuse_trace, dict) and "id" in langfuse_trace:
-            trace_id = str(langfuse_trace["id"])
-        else:
-            # Fallback si format inconnu
-            trace_id = "unknown"
-            logger.warning(
-                "langfuse_trace_id_extraction_failed",
-                trace_type=type(langfuse_trace).__name__,
-            )
-
-        # Convertir en TraceContext (domain entity)
-        trace_context = TraceContext(trace_id=trace_id, metadata=metadata)
-
-        logger.info("langfuse_trace_created", trace_id=trace_id)
-
-        return trace_context
-
-    def flush(self) -> None:
-        """
-        Force l'envoi des traces à Langfuse.
-
-        Langfuse buffer les traces et les envoie par batch.
-        Cette méthode force l'envoi immédiat.
-
-        Important:
-        À appeler avant la fin d'une requête pour s'assurer
-        que toutes les traces sont envoyées.
-
-        Example:
-            >>> adapter.create_trace("test", {})
-            >>> adapter.flush()  # Envoie maintenant
-        """
-        logger.info("flushing_langfuse_traces")
-        self.langfuse.flush()
-        logger.info("langfuse_traces_flushed")
+    def flush(self):
+        """Flush les traces Langfuse."""
+        self._service.flush()

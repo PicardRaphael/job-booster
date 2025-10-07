@@ -12,6 +12,7 @@ from app.application.dtos import JobAnalysisDTO
 from app.core.logging import get_logger
 from app.domain.entities.job_offer import JobOffer
 from app.domain.services.analyzer_service import IAnalyzerService
+from app.infrastructure.observability.langfuse_decorator import trace_span
 
 logger = get_logger(__name__)
 
@@ -45,6 +46,7 @@ class AnalyzeJobOfferUseCase:
         """
         self.analyzer_service = analyzer_service
 
+    @trace_span("AnalyzeJobOfferUseCase")
     def execute(self, command: AnalyzeJobOfferCommand) -> JobAnalysisDTO:
         """
         Exécute l'analyse de l'offre.

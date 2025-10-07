@@ -17,7 +17,6 @@ from app.domain.repositories.document_repository import IDocumentRepository
 from app.domain.repositories.embedding_service import IEmbeddingService
 from app.domain.repositories.llm_provider import ILLMProvider
 from app.domain.services.analyzer_service import IAnalyzerService
-from app.domain.services.observability_service import IObservabilityService
 from app.domain.services.reranker_service import IRerankerService
 from app.domain.services.writer_service import IContentWriterService
 
@@ -31,11 +30,10 @@ from app.infrastructure.ai.crewai import (
 )
 from app.infrastructure.ai.crewai_analyzer_adapter import CrewAIAnalyzerAdapter
 from app.infrastructure.config import YAMLConfigurationLoader
-from app.infrastructure.observability import LangfuseAdapter, NoOpObservabilityAdapter
 from app.infrastructure.vector_db import MultilingualEmbeddingAdapter, QdrantAdapter
+from app.infrastructure.observability.langfuse_adapter import LangfuseAdapter
 
 # Legacy services
-from app.services.langfuse_service import get_langfuse_service
 from app.services.qdrant_service import get_qdrant_service
 from app.services.reranker import get_reranker_service
 
@@ -48,7 +46,6 @@ from app.application.use_cases import (
     GenerateLinkedInUseCase,
     RerankDocumentsUseCase,
     SearchDocumentsUseCase,
-    TraceGenerationUseCase,
 )
 
 logger = get_logger(__name__)
@@ -98,7 +95,6 @@ class Container:
         self._content_writer_service: Optional[IContentWriterService] = None
 
         # Use cases
-        self._trace_use_case: Optional[TraceGenerationUseCase] = None
         self._analyze_use_case: Optional[AnalyzeJobOfferUseCase] = None
         self._search_use_case: Optional[SearchDocumentsUseCase] = None
         self._rerank_use_case: Optional[RerankDocumentsUseCase] = None
@@ -145,10 +141,9 @@ class Container:
         return self._document_repository
 
     def observability_service(self) -> IObservabilityService:
-        """Get observability service."""
+        """Get observability service (direct Langfuse)."""
         if self._observability_service is None:
-            # Use NoOp adapter temporarily until Langfuse is properly configured
-            self._observability_service = NoOpObservabilityAdapter()
+            self._observability_service = LangfuseAdapter()
         return self._observability_service
 
     # === Domain Services ===
@@ -205,14 +200,6 @@ class Container:
         return self._content_writer_service
 
     # === Use Cases ===
-
-    def trace_use_case(self) -> TraceGenerationUseCase:
-        """Get trace use case."""
-        if self._trace_use_case is None:
-            self._trace_use_case = TraceGenerationUseCase(
-                self.observability_service()
-            )
-        return self._trace_use_case
 
     def analyze_use_case(self) -> AnalyzeJobOfferUseCase:
         """Get analyze use case."""

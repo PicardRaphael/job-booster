@@ -1,51 +1,47 @@
-"""Langfuse observability service."""
-
-from typing import Any, Dict
-
 from langfuse import Langfuse
+from app.core.settings import settings
 
-from app.core.config import settings
-from app.core.logging import get_logger
-
-logger = get_logger(__name__)
+_langfuse_instance = None
 
 
 class LangfuseService:
-    """Service for Langfuse tracing and observability."""
+    """Service concret qui gère le client Langfuse."""
 
-    def __init__(self) -> None:
-        """Initialize Langfuse client."""
-        logger.info("initializing_langfuse")
+    def __init__(self):
         self.client = Langfuse(
             public_key=settings.langfuse_public_key,
             secret_key=settings.langfuse_secret_key,
             host=settings.langfuse_host,
         )
-        logger.info("langfuse_initialized")
 
-    def create_trace(
-        self,
-        name: str,
-        user_id: str | None = None,
-        metadata: Dict[str, Any] | None = None,
-    ) -> Any:
-        """Create a new trace."""
-        trace_id = self.client.create_trace_id()
-        # Return a simple object with the trace_id
-        return type('Trace', (), {'id': trace_id, 'name': name, 'metadata': metadata or {}})()
+    def create_trace(self, name: str, input_data: dict, output_data: dict = None):
+        trace = self.client.trace(
+            name=name,
+            input=input_data,
+            output=output_data,
+        )
+        trace.flush()
+        return trace
 
-    def flush(self) -> None:
-        """Flush all pending events to Langfuse."""
-        self.client.flush()
+    def create_span(self, trace, name: str, input_data: dict = None, output_data: dict = None):
+        span = trace.span(
+            name=name,
+            input=input_data,
+            output=output_data,
+        )
+        span.flush()
+        return span
 
-
-# Singleton instance
-_langfuse_service: LangfuseService | None = None
+    def flush(self):
+        try:
+            self.client.flush()
+        except Exception as e:
+            print(f"[Langfuse flush error] {e}")
 
 
 def get_langfuse_service() -> LangfuseService:
-    """Get or create the singleton Langfuse service."""
-    global _langfuse_service
-    if _langfuse_service is None:
-        _langfuse_service = LangfuseService()
-    return _langfuse_service
+    """Singleton getter pour le service Langfuse."""
+    global _langfuse_instance
+    if _langfuse_instance is None:
+        _langfuse_instance = LangfuseService()
+    return _langfuse_instance

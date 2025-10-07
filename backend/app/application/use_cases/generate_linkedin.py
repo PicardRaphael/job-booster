@@ -15,6 +15,7 @@ from app.core.logging import get_logger
 from app.domain.entities.job_analysis import JobAnalysis
 from app.domain.entities.job_offer import JobOffer
 from app.domain.services.writer_service import ILinkedInWriter
+from app.infrastructure.observability.langfuse_decorator import trace_span
 
 logger = get_logger(__name__)
 
@@ -49,6 +50,7 @@ class GenerateLinkedInUseCase:
         """
         self.linkedin_writer = linkedin_writer
 
+    @trace_span("GenerateLinkedInUseCase")
     def execute(self, command: GenerateContentCommand) -> str:
         """
         Génère un message privé LinkedIn de motivation.

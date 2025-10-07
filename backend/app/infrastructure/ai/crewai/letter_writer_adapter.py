@@ -17,10 +17,11 @@ from app.domain.entities.job_offer import JobOffer
 from app.domain.repositories.llm_provider import ILLMProvider
 from app.domain.services.writer_service import ILetterWriter
 from app.infrastructure.ai.crewai import AgentBuilder, CrewBuilder
+from app.infrastructure.observability.langfuse_autotrace import autotrace_methods
 
 logger = get_logger(__name__)
 
-
+@autotrace_methods
 class LetterWriterAdapter(ILetterWriter):
     """
     Adapter CrewAI pour générer des lettres de motivation.

@@ -14,10 +14,10 @@ from app.domain.services.writer_service import (
     ILetterWriter,
     ILinkedInWriter,
 )
-
+from app.infrastructure.observability.langfuse_autotrace import autotrace_methods
 logger = get_logger(__name__)
 
-
+@autotrace_methods
 class CrewAIContentWriterService(IContentWriterService):
     """
     Service composite pour tous les writers CrewAI.

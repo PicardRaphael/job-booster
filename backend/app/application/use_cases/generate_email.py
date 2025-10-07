@@ -15,6 +15,7 @@ from app.core.logging import get_logger
 from app.domain.entities.job_analysis import JobAnalysis
 from app.domain.entities.job_offer import JobOffer
 from app.domain.services.writer_service import IEmailWriter
+from app.infrastructure.observability.langfuse_decorator import trace_span
 
 logger = get_logger(__name__)
 
@@ -49,6 +50,7 @@ class GenerateEmailUseCase:
         """
         self.email_writer = email_writer
 
+    @trace_span("GenerateEmailUseCase")
     def execute(self, command: GenerateContentCommand) -> str:
         """
         Génère un email de motivation.
