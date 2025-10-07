@@ -153,11 +153,6 @@ class GenerateCoverLetterUseCase:
                             "[RULESET: GLOBAL]" in doc.text or
                             "RULESET: GLOBAL" in doc.text]
 
-        if not ruleset_signature:
-            ruleset_signature = [doc for doc in documents if
-                               "[RULESET: SIGNATURE]" in doc.text or
-                               "raphaelpicard@outlook.fr" in doc.text]
-
         # 2. Informations personnelles (type = "profile" depuis le header de informations.md)
         info_perso = [doc for doc in documents if
                      getattr(doc, "metadata", {}).get("source") == "informations.md" and
@@ -240,10 +235,6 @@ class GenerateCoverLetterUseCase:
             context_parts.append("=== [FORMATIONS ET CERTIFICATIONS] ===\n" +
                                 "\n".join(doc.text for doc in formations[:2]))  # Top 2
 
-        # SECTION 6: SIGNATURE
-        if ruleset_signature:
-            context_parts.append("=== [SIGNATURE] ===\n" +
-                                ruleset_signature[0].text)  # 1 seul chunk complet
 
         final_context = "\n\n".join(context_parts)
         logger.info("rag_context_built",

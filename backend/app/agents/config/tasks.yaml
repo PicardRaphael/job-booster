@@ -1,6 +1,6 @@
 analyze_offer:
   description: |
-    Lis {job_offer} et rends un JSON strict conforme au schéma :
+    Lis {job_offer} et rends un JSON strict conforme au schéma suivant :
       {
         "poste": string,
         "entreprise": string,
@@ -15,41 +15,40 @@ analyze_offer:
         "mots_cles": string[],
         "resume_concis": string
       }
-    Sortie : uniquement l'objet JSON minifié (une ligne), zéro texte hors JSON.
+    Sortie : uniquement l'objet JSON minifié, sans texte hors JSON.
   expected_output: 'JSON strict, minifié, valide.'
   agent: analyzer
   context: [job_offer]
 
 write_letter:
   description: |
-    Rédige une lettre en utilisant :
-      - {job_offer} (texte brut)
-      - {analysis} (JSON de analyze_offer)
-      - {rag_context} (objet construit via Qdrant)
-    Respecte structure fournis par {rag_context}.
-  expected_output: 'Lettre prête à envoyer, 4 paragraphes max.'
+    Rédige une lettre de motivation à partir de :
+    - {job_offer} : texte complet de l’offre
+    - {analysis} : résultat JSON de l’analyse d’offre
+    - {rag_context} : contexte utilisateur et règles de rédaction (RULESET)
+    Respecte scrupuleusement le ton et la structure indiqués dans {rag_context}.
+  expected_output: 'Lettre claire, fluide, professionnelle et prête à envoyer.'
   agent: letter_writer
   context: [job_offer, analysis, rag_context]
 
 write_email:
-  description: >
-    Rédige un email de motivation court en utilisant :
-        - {job_offer} (texte brut)
-        - {analysis} (JSON de analyze_offer)
-        - {rag_context} (objet construit via Qdrant)
-    Respecte structure fournis par {rag_context}.
-  expected_output: >
-    Email professionnel de 6 à 8 lignes maximum.
+  description: |
+    Rédige un email de motivation professionnel et concis à partir de :
+    - {job_offer}
+    - {analysis}
+    - {rag_context}
+    L’email doit appliquer les contraintes de ton, style et longueur définies dans {rag_context}.
+  expected_output: 'Email clair, percutant, 6 à 8 lignes maximum.'
   agent: email_writer
   context: [job_offer, analysis, rag_context]
 
 write_linkedin:
-  description: >
-    Rédige un message LinkedIn concis et percutant en utilisant :
-      - {job_offer} (texte brut)
-      - {analysis} (JSON de analyze_offer)
-      - {rag_context} (objet construit via Qdrant)
-  expected_output: >
-    Message LinkedIn professionnel de 3 à 5 phrases maximum.
+  description: |
+    Rédige un message LinkedIn professionnel et engageant à partir de :
+    - {job_offer}
+    - {analysis}
+    - {rag_context}
+    Le message doit refléter la personnalité du profil tout en respectant le ton professionnel défini dans {rag_context}.
+  expected_output: 'Message LinkedIn court (3 à 5 phrases), fluide et crédible.'
   agent: linkedin_writer
   context: [job_offer, analysis, rag_context]

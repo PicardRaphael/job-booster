@@ -10,7 +10,15 @@
       "Bash(pnpm update:*)",
       "Bash(taskkill:*)",
       "Bash(find:*)",
-      "Bash(pkill:*)"
+      "Bash(pkill:*)",
+      "Bash(python:*)",
+      "Bash(uv run:*)",
+      "Bash(timeout 5 uv run:*)",
+      "Bash(uv pip install:*)",
+      "Bash(awk:*)",
+      "Bash(timeout 10 uv run uvicorn app.main:app --reload)",
+      "Bash(test:*)",
+      "Bash(curl -s http://127.0.0.1:8000/api/v1/system/health)"
     ],
     "deny": [],
     "ask": []

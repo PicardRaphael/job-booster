@@ -1,103 +1,112 @@
 ## [RULESET: GLOBAL]
 
-Prénom Nom = Raphaël Picard
-Email = raphaelpicard@outlook.fr
-Telephone= 06.50.93.15.73
-Adresse = 60 impasse durnerin 69430 Marchampt
+Identité :
 
-- Toujours écrire en **français professionnel**.
-- Ton **direct, factuel, sans émotion ni emphase**.
-- Éliminer les éléments suivants Émojis
-- Éliminer les éléments suivants Exclamations
-- Éliminer les éléments suivants Formules de politesse molles (“Bien à vous”, “Cordialement”, etc.)
-- Formulation **précise, assertive, sans remplissage ni flatterie**.
-- Pas d’ornement stylistique.
+- Prénom Nom : Raphaël Picard
+- Email : raphaelpicard@outlook.fr
+- Téléphone : 06.50.93.15.73
+- Adresse : 60 impasse Durnerin, 69430 Marchampt
+
+Règles générales :
+
+- Langue : français professionnel uniquement.
+- Ton : direct, factuel, sans émotion ni emphase.
+- Éliminer :
+  - Emojis
+  - Exclamations
+  - Formules de politesse molles (“Bien à vous”, “Cordialement”, etc.)
+- Formulation : précise, assertive, sans remplissage ni flatterie.
+- Style : sobre, centré sur la compétence et la valeur ajoutée.
 - Aucune répétition.
-- Langage sobre, tourné vers la compétence.
+- Chaque texte doit être auto-suffisant (collable tel quel).
 
 Contenu obligatoire :
 
-- Mentionner **React** ET **IA** (même si le poste n’est orienté que sur l’un des deux).
-- Si une compétence manque par rapport à l’annonce → indiquer être **prêt à monter en compétence**.
-- Ne jamais inventer de compétence ni d’expérience.
-- Chaque texte doit être **personnalisé** avec les variables dynamiques suivantes :
-- `{{poste}}` : titre du poste visé
-- `{{entreprise}}` : nom de l’entreprise
-- `{{prenom}}` : prénom du destinataire
-- `{{nom}}` : nom du destinataire
-- `{{source}}` : site ou plateforme de l’annonce
-- `{{signature}}` : bloc signature professionnel de Raphaël Picard
+- Mentionner **React** ET **IA** (même si non explicitement demandés).
+- Si une compétence manque → préciser être **prêt à monter en compétence**.
+- Ne jamais inventer une compétence ni une expérience.
+- Personnaliser avec les variables dynamiques suivantes :
+  - `<<poste>>` : titre du poste
+  - `<<entreprise>>` : nom de l’entreprise
+  - `<<prenom>>` : prénom du destinataire
+  - `<<nom>>` : nom du destinataire
+  - `<<source>>` : site ou plateforme de l’annonce
+  - `<<signature>>` : bloc signature professionnel de Raphaël Picard
+
+---
 
 ## [RULESET: LETTER]
 
-### Structure
+Structure obligatoire :
 
-1.  **Objet clair et percutant**
-    → Exemple :`Objet : Candidature – Développeur Fullstack React / IA – {{entreprise}}`
-2.  **Introduction engageante**
-    - Une phrase d’ouverture :
-      “Passionné par le développement web et fort de 8 ans d’expérience, je suis très intéressé par l’opportunité de rejoindre {{entreprise}} en tant que {{poste}}.”
-3.  **Pourquoi moi ?**
-    Format à puces courtes.
-    Exemple :
-    Pourquoi moi ? - Maîtrise de React / Next.js / TypeScript / Node.js. - Pratique avancée de l’IA (RAG, LangChain, agents, automatisation). - Culture de la qualité (tests, Clean Architecture, CI/CD). - Expérience en équipe Agile et mentoring.
-4.  **Conclusion dynamique**
-    - “Je serais ravi d’échanger avec vous pour discuter plus en détail de ma candidature.”
+1. **Objet clair et percutant**
+   - Format : `Objet : Candidature – Développeur Fullstack React / IA – <<entreprise>>`
+2. **Introduction engageante**
+   - Présentation synthétique de soi et motivation pour le poste.
+   - Exemple de structure :
+     “Fort de 8 ans d’expérience en développement web, je souhaite rejoindre <<entreprise>> en tant que <<poste>>.”
+3. **Pourquoi moi ?**
+   - Section en puces (ou phrases courtes).
+   - Inclure au minimum :
+     - Maîtrise de React / Next.js / TypeScript / Node.js.
+     - Pratique de l’IA (RAG, LangChain, agents, automatisation).
+     - Culture de la qualité (tests, Clean Architecture, CI/CD).
+     - Expérience en équipe Agile et mentoring.
+4. **Conclusion dynamique**
+   - Phrase d’ouverture au contact :
+     “Je serais ravi d’échanger pour discuter plus en détail de ma candidature.”
 
-### Exigences
+Contraintes :
 
-- Maximum : 4 paragraphes.
+- 4 paragraphes maximum.
 - Longueur totale : 1 page.
-- Doit pouvoir être collée directement dans un formulaire ou email.
+- Texte collable directement dans un formulaire ou un email.
+- Ne pas reproduire les exemples textuellement : s’en inspirer pour la structure uniquement.
+
+---
 
 ## [RULESET: EMAIL]
 
-### Structure
+Structure attendue :
 
-1.  **Objet clair et percutant**
-    `Objet : Candidature – Développeur Fullstack React / IA – {{entreprise}}`
-2.  **Corps du message**
-    Exemple complet :
-    ```
-    Bonjour {{prenom}},
-    Suite à votre offre pour le poste de {{poste}}, je vous propose ma candidature. Développeur fullstack avec 8 ans d’expérience sur React, Node.js et l’intégration de l’IA (RAG, LangChain, agents, automatisation), je conçois des applications web sur-mesure et performantes.
-    Votre environnement technique correspond pleinement à mes expertises et à ma volonté de contribuer à des projets innovants autour de l’IA.
-    Je reste disponible pour un échange à votre convenance.
-    ```
-3.  **Contraintes**
-    - Longueur : 6 à 8 lignes maximum.
-    - Doit être lisible sans pièce jointe.
-    - Aucune phrase superflue ou de politesse générique.
+1. **Objet clair et percutant**
+   - Format : `Objet : Candidature – <<poste>> – <<entreprise>>`
+2. **Corps du message**
+   - Introduction naturelle avec prénom du recruteur si connu.
+   - Mention explicite du poste et de la motivation.
+   - Mise en avant synthétique de l’expérience (React, Node.js, IA : RAG, LangChain, agents).
+   - Phrase finale d’ouverture à l’échange.
+3. **Contraintes**
+   - Longueur : 6 à 8 lignes.
+   - Lisible sans pièce jointe.
+   - Ton professionnel et fluide.
+   - Aucune phrase de politesse générique.
+
+---
 
 ## [RULESET: LINKEDIN]
 
-### Structure
+Objectif :
 
-- Message court, direct, contextuel.
-- Objectif : initier un contact ou postuler à une offre.
+- Message court, contextuel, professionnel.
+- Vise à initier un contact crédible ou postuler à une offre.
 
-#### Cas 1 — Recruteur / RH
+Structure générale :
 
-```
-Bonjour {{prenom}},
-Je vous contacte concernant le poste de {{poste}} chez {{entreprise}}.
-Développeur fullstack (React / Node.js) avec une forte appétence pour l’IA, je vous joins mon CV et reste disponible pour un échange rapide.
-Dans l’attente de votre réponse, à très vite.
-```
+- Salutation personnalisée (`Bonjour <<prenom>>` si connu, sinon neutre).
+- Mention du poste et de l’entreprise.
+- Brève présentation du profil (React / Node.js / IA).
+- Lien entre profil et besoins du poste.
+- Conclusion ouverte à l’échange.
 
-#### Cas 2 — CTO / profil technique
+Le ton dépend du type de contact :
 
-```
-Bonjour {{prenom}},
-Je vous contacte au sujet du poste de {{poste}}.
-Je travaille sur des architectures React / Node.js et j’intègre l’IA dans mes projets (agents, RAG, automatisation).
-Disponible pour échanger plus en détail sur vos besoins techniques.
-```
+- **Recruteur / RH** : direct et professionnel, orienté candidature.
+- **CTO / profil technique** : plus technique et concis, orienté échange d’expertise.
+- **Réseau (hors recrutement)** : ton curieux, ouvert, orienté échange entre pairs.
 
-#### Cas 3 — Réseau / Connexion non-recrutement
+Contraintes :
 
-```
-Bonjour {{prenom}},
-Développeur fullstack spécialisé dans l’intégration de l’IA dans les applications web, je suis toujours curieux d’échanger autour des projets tech et innovation.
-Toujours partant pour connecter entre passionnés de tech & IA.
-```
+- 3 à 5 phrases maximum.
+- Aucun emoji, aucune flatterie, aucun superlatif.
+- Ne jamais copier les exemples mot pour mot, seulement respecter la logique structurelle.

@@ -6,6 +6,7 @@ Infrastructure Layer - Clean Architecture
 Adapter pour générer des emails avec CrewAI.
 Implémente IEmailWriter du domain.
 """
+import json
 
 from typing import Any, Dict
 
@@ -72,10 +73,12 @@ class EmailWriterAdapter(IEmailWriter):
 
         # Créer la task
         task = Task(
-            description=self.task_config.get("description", "Write email"),
-            expected_output=self.task_config.get("expected_output", "Email"),
+            description=self.task_config["description"],
+            expected_output=self.task_config["expected_output"],
             agent=agent,
+            output_file=None,
         )
+
 
         # Créer et exécuter le crew
         crew = (
@@ -88,7 +91,7 @@ class EmailWriterAdapter(IEmailWriter):
 
         inputs = {
             "job_offer": job_offer.text,
-            "analysis": analysis.summary,
+            "analysis": json.dumps(analysis.__dict__, ensure_ascii=False),
             "rag_context": context,
         }
 

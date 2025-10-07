@@ -115,7 +115,6 @@ async def test_rag_retrieval():
                 "RULESET: EMAIL": False,
                 "RULESET: LINKEDIN": False,
                 "RULESET: GLOBAL": False,
-                "RULESET: SIGNATURE": False,
             }
 
             for doc in reranked_docs:

@@ -6,7 +6,7 @@ Infrastructure Layer - Clean Architecture
 Adapter pour générer des messages privés LinkedIn avec CrewAI.
 Implémente ILinkedInWriter du domain.
 """
-
+import json
 from typing import Any, Dict
 
 from crewai import Process, Task
@@ -72,9 +72,10 @@ class LinkedInWriterAdapter(ILinkedInWriter):
 
         # Créer la task
         task = Task(
-            description=self.task_config.get("description", "Write LinkedIn message"),
-            expected_output=self.task_config.get("expected_output", "LinkedIn message"),
+            description=self.task_config["description"],
+            expected_output=self.task_config["expected_output"],
             agent=agent,
+            output_file=None,
         )
 
         # Cr�er et ex�cuter le crew
@@ -88,9 +89,10 @@ class LinkedInWriterAdapter(ILinkedInWriter):
 
         inputs = {
             "job_offer": job_offer.text,
-            "analysis": analysis.summary,
+            "analysis": json.dumps(analysis.__dict__, ensure_ascii=False),
             "rag_context": context,
         }
+
 
         result = crew.kickoff(inputs=inputs)
         linkedin_content = str(result)

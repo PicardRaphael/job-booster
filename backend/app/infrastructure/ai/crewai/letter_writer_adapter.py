@@ -17,6 +17,7 @@ from app.domain.entities.job_offer import JobOffer
 from app.domain.repositories.llm_provider import ILLMProvider
 from app.domain.services.writer_service import ILetterWriter
 from app.infrastructure.ai.crewai import AgentBuilder, CrewBuilder
+import json
 
 logger = get_logger(__name__)
 
@@ -73,9 +74,10 @@ class LetterWriterAdapter(ILetterWriter):
 
         # Créer la task
         task = Task(
-            description=self.task_config.get("description", "Write cover letter"),
-            expected_output=self.task_config.get("expected_output", "Cover letter"),
+            description=self.task_config["description"],
+            expected_output=self.task_config["expected_output"],
             agent=agent,
+            output_file=None,
         )
 
         # Créer et exécuter le crew
@@ -87,35 +89,10 @@ class LetterWriterAdapter(ILetterWriter):
             .build()
         )
 
-        # Passer les inputs au runtime avec analyse complète structurée
-        analysis_parts = [
-            f"ENTREPRISE: {analysis.company or 'Non spécifiée'}",
-            f"POSTE: {analysis.position}",
-            f"SECTEUR: {analysis.sector or 'Non spécifié'}",
-            "",
-            f"RÉSUMÉ: {analysis.summary}",
-        ]
-
-        if analysis.missions:
-            analysis_parts.append(f"\nMISSIONS: {', '.join(analysis.missions[:5])}")
-
-        if analysis.key_skills:
-            analysis_parts.append(f"\nCOMPÉTENCES TECHNIQUES: {', '.join(analysis.key_skills[:8])}")
-
-        if analysis.soft_skills:
-            analysis_parts.append(f"\nSOFT SKILLS: {', '.join(analysis.soft_skills[:5])}")
-
-        if analysis.values:
-            analysis_parts.append(f"\nVALEURS ENTREPRISE: {', '.join(analysis.values[:4])}")
-
-        if analysis.tone:
-            analysis_parts.append(f"\nTON RECRUTEUR: {analysis.tone}")
-
-        analysis_text = "\n".join(analysis_parts)
 
         inputs = {
             "job_offer": job_offer.text,
-            "analysis": analysis_text,
+            "analysis": json.dumps(analysis.__dict__, ensure_ascii=False),
             "rag_context": context,
         }
 

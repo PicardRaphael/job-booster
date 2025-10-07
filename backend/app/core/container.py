@@ -143,11 +143,18 @@ class Container:
         return self._document_repository
 
     def observability_service(self) -> IObservabilityService:
-        """Get observability service."""
+        """Get observability service (Langfuse or NoOp)."""
         if self._observability_service is None:
-            if os.getenv("ENABLE_LANGFUSE", "false").lower() == "true":
-                self._observability_service = LangfuseAdapter()
+            enable_langfuse = os.getenv("ENABLE_LANGFUSE", "false").lower() == "true"
+            if enable_langfuse:
+                try:
+                    logger.info("initializing_langfuse_adapter")
+                    self._observability_service = LangfuseAdapter()
+                except Exception as e:
+                    logger.warning("langfuse_adapter_init_failed", error=str(e))
+                    self._observability_service = NoOpObservabilityAdapter()
             else:
+                logger.info("langfuse_disabled_using_noop")
                 self._observability_service = NoOpObservabilityAdapter()
         return self._observability_service
 

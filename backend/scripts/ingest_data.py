@@ -1,6 +1,5 @@
 """Script to ingest user data into Qdrant."""
 
-import asyncio
 import sys
 from pathlib import Path
 

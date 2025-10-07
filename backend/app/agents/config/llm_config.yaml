@@ -13,7 +13,7 @@ agents:
   # Analyzer - Extraction et analyse d'offres
   analyzer:
     provider: openai
-    model: gpt-4.1-mini
+    model: gpt-4o-mini
     temperature: 0.2 # Réduction de la créativité, plus déterministe
     top_p: 0.85 # Suffisant pour cohérence lexicale
     frequency_penalty: 0.4 # Évite répétitions sur les mêmes termes (stack, missions)
@@ -23,7 +23,7 @@ agents:
   # Email Writer - Rédaction d'emails de candidature
   email_writer:
     provider: openai
-    model: gemini-2.5-flash-lite
+    model: gpt-4o-mini
     temperature: 0.45 # Légère variation pour un ton humain
     top_p: 0.9 # Un peu de diversité dans la formulation
     frequency_penalty: 0.4 # Évite répétitions (« React », « IA »)
@@ -32,8 +32,8 @@ agents:
 
   # LinkedIn Writer - Messages LinkedIn personnalisés
   linkedin_writer:
-    provider: google
-    model: gemini-2.5-flash-lite
+    provider: openai
+    model: gpt-4o-mini
     temperature: 0.55 # Laisse de la personnalité dans le ton
     top_p: 0.92 # Diversité légère pour formuler différemment
     frequency_penalty: 0.3 # Évite redondance
@@ -43,7 +43,7 @@ agents:
   # Letter Writer - Lettres de motivation complètes
   letter_writer:
     provider: openai
-    model: gpt-4.1-mini
+    model: gpt-4o-mini
     temperature: 0.35 # Léger dynamisme sans perte de structure
     top_p: 0.9 # Diversité modérée pour éviter monotonie
     frequency_penalty: 0.5 # Réduit répétition des phrases d’accroche
@@ -51,8 +51,8 @@ agents:
     max_tokens: 900
 # Configuration par défaut si agent non spécifié
 default:
-  provider: google
-  model: gemini-2.5-flash-lite
+  provider: openai
+  model: gpt-4o-mini
   temperature: 0.45 # Légère variation pour un ton humain
   top_p: 0.9 # Un peu de diversité dans la formulation
   frequency_penalty: 0.4 # Évite répétitions (« React », « IA »)
