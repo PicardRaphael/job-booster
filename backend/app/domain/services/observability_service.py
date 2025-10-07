@@ -20,62 +20,66 @@ from dataclasses import dataclass
 from typing import Any, Dict
 
 
-@dataclass(frozen=True)
-class TraceContext:
-    """
-    Value Object représentant un contexte de trace.
-
-    Immutable (frozen=True) car c'est une donnée qui ne change pas.
-
-    Attributs:
-        trace_id: Identifiant unique de la trace
-                  Ex: "langfuse-abc123", "datadog-xyz789"
-        metadata: Métadonnées associées à la trace
-                  Ex: {"user_id": "123", "content_type": "email"}
-    """
-
-    trace_id: str
-    metadata: Dict[str, Any]
-
-
 class IObservabilityService(ABC):
     """
-    Interface pour le service d'observabilité.
+    Interface pour le service d'observabilité compatible avec Langfuse.
 
     Responsabilité:
     - Créer des traces pour suivre l'exécution
-    - Associer des métadonnées aux opérations
+    - Créer des spans pour tracer les sous-étapes
     - Permettre le debug et le monitoring en production
 
-    Note: Cette interface est simple intentionnellement.
-    Si besoin de plus de features (spans, events, metrics),
-    on peut étendre avec d'autres méthodes.
+    Design:
+    - Signature compatible avec Langfuse (input_data, output_data)
+    - Retourne l'objet trace/span natif pour permettre l'extension
+    - Méthodes optionnelles pour flexibilité
     """
 
     @abstractmethod
-    def create_trace(self, name: str, metadata: Dict[str, Any]) -> TraceContext:
+    def create_trace(self, name: str, input_data: dict, output_data: dict = None):
         """
         Crée une nouvelle trace d'observabilité.
 
-        Utilisé pour:
-        - Tracer une génération de contenu complète
-        - Associer un ID unique à chaque requête
-        - Stocker des métadonnées (type de contenu, longueur, etc.)
-
         Args:
             name: Nom de la trace (ex: "job_application_generation")
-            metadata: Métadonnées associées
-                     Ex: {"content_type": "email", "user_id": "123"}
+            input_data: Données d'entrée de l'opération
+                       Ex: {"job_offer": "...", "content_type": "email"}
+            output_data: Données de sortie (optionnel)
+                        Ex: {"generated_text": "...", "length": 500}
 
         Returns:
-            TraceContext avec trace_id et metadata
+            Objet trace natif (ex: Langfuse trace object)
 
         Example:
-            >>> service.create_trace(
+            >>> trace = service.create_trace(
             ...     name="generation",
-            ...     metadata={"type": "email", "length": 500}
+            ...     input_data={"type": "email"},
+            ...     output_data={"length": 500}
             ... )
-            TraceContext(trace_id="langfuse-abc123", metadata={...})
+        """
+        pass
+
+    @abstractmethod
+    def create_span(self, trace, name: str = None, input_data: dict = None, output_data: dict = None):
+        """
+        Crée un span (sous-étape) dans une trace.
+
+        Args:
+            trace: Objet trace parent
+            name: Nom du span (ex: "rag_search")
+            input_data: Données d'entrée du span
+            output_data: Données de sortie du span
+
+        Returns:
+            Objet span natif
+
+        Example:
+            >>> span = service.create_span(
+            ...     trace=trace,
+            ...     name="rag_search",
+            ...     input_data={"query": "..."},
+            ...     output_data={"results": 10}
+            ... )
         """
         pass
 
@@ -84,15 +88,7 @@ class IObservabilityService(ABC):
         """
         Force l'envoi des traces au serveur.
 
-        Utilisé pour:
-        - S'assurer que les traces sont envoyées avant la fin de la requête
-        - Éviter de perdre des traces en cas de crash
-
-        Note: Certains services (comme Langfuse) bufferisent les traces
-        et les envoient par batch. Cette méthode force l'envoi immédiat.
-
         Example:
-            >>> service.create_trace("test", {})
-            >>> service.flush()  # Envoie au serveur maintenant
+            >>> service.flush()  # Envoie toutes les traces buffered
         """
         pass

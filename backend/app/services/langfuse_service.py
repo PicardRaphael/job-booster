@@ -1,5 +1,5 @@
 from langfuse import Langfuse
-from app.core.settings import settings
+from app.core.config import settings
 
 _langfuse_instance = None
 

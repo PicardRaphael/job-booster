@@ -26,7 +26,7 @@ from app.application.use_cases import (
 from app.core.logging import get_logger
 from app.domain.exceptions import NoDatabaseDocumentsError
 from app.domain.services.observability_service import IObservabilityService
-from app.infrastructure.observability.langfuse_service import LangfuseService
+from app.services.langfuse_service import get_langfuse_service
 
 logger = get_logger(__name__)
 
@@ -75,17 +75,19 @@ class GenerateApplicationOrchestrator:
             offer_length=len(command.job_offer.text),
         )
 
-        # === ÉTAPE 1: Créer trace principale Langfuse ===
-        trace = self.observability_service.log_trace(
-            name=f"{command.content_type}_generation",
-            input_data={
-                "content_type": command.content_type,
-                "job_offer": command.job_offer.text[:2000],  # limite de log
-            },
-        )
-        # Propager la trace pour tous les spans décorés
-        self.observability_service.adapter.current_trace = trace
-        logger.info("orchestrator_trace_created", trace_id=getattr(trace, "id", "unknown"))
+        # === ÉTAPE 1: Créer trace principale (optionnel) ===
+        try:
+            trace = self.observability_service.create_trace(
+                name=f"{command.content_type}_generation",
+                input_data={
+                    "content_type": command.content_type,
+                    "job_offer": command.job_offer.text[:500],  # limite de log
+                },
+            )
+            logger.info("orchestrator_trace_created", trace_id=getattr(trace, "id", "noop") if trace else "noop")
+        except Exception as e:
+            logger.warning("orchestrator_trace_failed", error=str(e))
+            trace = None
 
         # === ÉTAPE 2: Analyse de l'offre ===
         analyze_command = AnalyzeJobOfferCommand(

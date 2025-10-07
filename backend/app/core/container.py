@@ -17,6 +17,7 @@ from app.domain.repositories.document_repository import IDocumentRepository
 from app.domain.repositories.embedding_service import IEmbeddingService
 from app.domain.repositories.llm_provider import ILLMProvider
 from app.domain.services.analyzer_service import IAnalyzerService
+from app.domain.services.observability_service import IObservabilityService
 from app.domain.services.reranker_service import IRerankerService
 from app.domain.services.writer_service import IContentWriterService
 
@@ -248,7 +249,6 @@ class Container:
         """Get orchestrator."""
         if self._orchestrator is None:
             self._orchestrator = GenerateApplicationOrchestrator(
-                trace_use_case=self.trace_use_case(),
                 analyze_use_case=self.analyze_use_case(),
                 search_use_case=self.search_use_case(),
                 rerank_use_case=self.rerank_use_case(),
